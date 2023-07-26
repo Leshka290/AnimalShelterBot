@@ -6,6 +6,14 @@ Spring-boot приложение, интегрированное с телегр
 Телеграмм-бот который отвечает на популярные вопросы о том, что нужно знать и уметь, чтобы забрать животное из приюта.
 Новые хозяеева могут присылать отчеты о том, как животное приспосабливается к новой обстановке.
 ---
+
+Основной функционал:
+- Определение запроса
+- Консультация с новым пользователем
+- Консультация с потенциальным хозяином животного из приюта
+- Ведение питомца
+  
+---
 ### :hammer_and_wrench: Languages and Tools :
 
 <div>
@@ -14,3 +22,10 @@ Spring-boot приложение, интегрированное с телегр
   <img src="https://github.com/devicons/devicon/blob/master/icons/postgresql/postgresql-original.svg" title="PostgreSQL"  alt="PostgreSQL" width="40" height="40"/>&nbsp;
   <img src="https://github.com/devicons/devicon/blob/master/icons/git/git-original-wordmark.svg" title="Git" **alt="Git" width="40" height="40"/>
 </div>
+
+---
+Разработчики проекта:
+- Дмитрий Ковачев
+- Алишер Шарипов
+- Алексей Охлопков
+- Константин Голиков
