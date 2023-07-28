@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.util.List;
 
+import static com.skyteam.animalshelterbot.listener.constants.ConstantsForBotMessages.*;
+
 @Service
 public class TelegramBotUpdatesListener implements UpdatesListener {
 
@@ -41,12 +43,49 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
                 switch (messageText) {
                     case ("/start"): {
-
                         startCommandReceived(chatId, update.message().chat().firstName());
+
                         break;
                     }
-                    case ("/help"): {
-
+                    case ("/info_cat_shelter"): {
+                        sendMessage(chatId, INFO_ABOUT_CAT_SHELTER);
+                        break;
+                    }
+                    case ("/info_dog_shelter"): {
+                        sendMessage(chatId, INFO_ABOUT_DOG_SHELTER);
+                        break;
+                    }
+                    case ("/schedule_and_address_cat_shelter"): {
+                        sendMessage(chatId, SCHEDULE_AND_ADDRESS_CAT_SHELTER);
+                        break;
+                    }
+                    case ("/schedule_and_address_dog_shelter"): {
+                        sendMessage(chatId, SCHEDULE_AND_ADDRESS_DOG_SHELTER);
+                        break;
+                    }
+                    case ("/pass_information_cat_shelter"): {
+                        sendMessage(chatId, PASS_INFORMATION_CAT_SHELTER);
+                        break;
+                    }
+                    case ("/pass_information_dog_shelter"): {
+                        sendMessage(chatId, PASS_INFORMATION_DOG_SHELTER);
+                        break;
+                    }
+                    case ("/safety_information_cat_shelter"): {
+                        sendMessage(chatId, SAFETY_INFORMATION_CAT_SHELTER);
+                        break;
+                    }
+                    case ("/safety_information_dog_shelter"): {
+                        sendMessage(chatId, SAFETY_INFORMATION_DOG_SHELTER);
+                        break;
+                    }
+                    case ("/cats"): {
+                        sendMessage(chatId, HELP_CATS_SHELTER);
+                        break;
+                    }
+                    case ("/dogs"): {
+                        sendMessage(chatId, HELP_DOGS_SHELTER);
+                        break;
                     }
                     default: {
                         prepareAndSendMessage(chatId, "Команда не распознана");
@@ -61,11 +100,13 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     }
 
     private void startCommandReceived(long chatId, String name) {
-        String answer = "Привет " + name;
+        String answer = "Добрый день, " + name + ". Выберите приют, из которого вы хотите взять питомца.\n/cats - Кошкин дом\n/dogs - Пёс хауз";
 
         logger.info("Replied to user " + name);
 
         sendMessage(chatId, answer);
+
+
     }
 
     private void sendMessage(long chatId, String textToSend) {
@@ -83,5 +124,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
         executeMessage(message);
     }
+
 }
 
