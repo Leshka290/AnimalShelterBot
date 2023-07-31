@@ -5,5 +5,5 @@ import com.skyteam.animalshelterbot.model.Client;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CatClientRepository extends JpaRepository<CatClient, Long> {
-    boolean existsByChatId(long chatId);
+    //boolean existsByChatId(long chatId);
 }
