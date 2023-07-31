@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.skyteam.animalshelterbot.listener.constants.ConstantsForBotMessages.*;
+
 @Service
 public class TelegramBotUpdatesListener implements UpdatesListener {
 
@@ -26,8 +28,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
     public TelegramBotUpdatesListener(TelegramBot telegramBot, ClientService clientService) {
 
-        this.telegramBot = telegramBot;
-        this.clientService = clientService;
     }
 
     String regex = "([A-Z][a-z]+) ([A-Z][a-z]+) (\\d{3}-\\d{3}-\\d{4})";
@@ -51,35 +51,54 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                 Matcher matcher = pattern.matcher(messageText);
                 switch (messageText) {
                     case ("/start"): {
-
                         startCommandReceived(chatId, update.message().chat().firstName());
-                        break;
-                    }
-                    case ("/help"): {
 
-                    }
-                    case ("/cat"): {
-                        clientService.saveClientWithoutInfo(chatId, "cat");
                         break;
                     }
-                    case ("/dog"): {
-                        clientService.saveClientWithoutInfo(chatId, "dog");
+                    case ("/info_cat_shelter"): {
+                        sendMessage(chatId, INFO_ABOUT_CAT_SHELTER);
                         break;
                     }
-                    case ("/profile"): {
-                        fillProfileMessage(chatId);
+                    case ("/info_dog_shelter"): {
+                        sendMessage(chatId, INFO_ABOUT_DOG_SHELTER);
+                        break;
+                    }
+                    case ("/schedule_and_address_cat_shelter"): {
+                        sendMessage(chatId, SCHEDULE_AND_ADDRESS_CAT_SHELTER);
+                        break;
+                    }
+                    case ("/schedule_and_address_dog_shelter"): {
+                        sendMessage(chatId, SCHEDULE_AND_ADDRESS_DOG_SHELTER);
+                        break;
+                    }
+                    case ("/pass_information_cat_shelter"): {
+                        sendMessage(chatId, PASS_INFORMATION_CAT_SHELTER);
+                        break;
+                    }
+                    case ("/pass_information_dog_shelter"): {
+                        sendMessage(chatId, PASS_INFORMATION_DOG_SHELTER);
+                        break;
+                    }
+                    case ("/safety_information_cat_shelter"): {
+                        sendMessage(chatId, SAFETY_INFORMATION_CAT_SHELTER);
+                        break;
+                    }
+                    case ("/safety_information_dog_shelter"): {
+                        sendMessage(chatId, SAFETY_INFORMATION_DOG_SHELTER);
+                        break;
+                    }
+                    case ("/cats"): {
+                        sendMessage(chatId, HELP_CATS_SHELTER);
+                        break;
+                    }
+                    case ("/dogs"): {
+                        sendMessage(chatId, HELP_DOGS_SHELTER);
                         break;
                     }
                     default: {
-                        prepareAndSendMessage(chatId);
+                        prepareAndSendMessage(chatId, "Команда не распознана");
                         break;
                     }
-                }
-                if (matcher.find()) {
-                    String name = matcher.group(1);
-                    String lastName = matcher.group(2);
-                    long phoneNumber = Long.parseLong(matcher.group(3));
-                    clientService.saveClientsInfo(name, lastName, phoneNumber, chatId);
                 }
             }
 
