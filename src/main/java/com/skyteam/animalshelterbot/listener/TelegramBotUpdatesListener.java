@@ -3,10 +3,15 @@ package com.skyteam.animalshelterbot.listener;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
+import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
+import com.pengrad.telegrambot.model.request.Keyboard;
+import com.pengrad.telegrambot.model.request.ReplyKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.skyteam.animalshelterbot.service.ClientService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -21,13 +26,14 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
     private final Logger logger = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
 
+    @Autowired
     private TelegramBot telegramBot = new TelegramBot("BOT_TOKEN");
 
     private final ClientService clientService;
 
 
-    public TelegramBotUpdatesListener(TelegramBot telegramBot, ClientService clientService) {
-
+    public TelegramBotUpdatesListener(ClientService clientService) {
+        this.clientService = clientService;
     }
 
     String regex = "([A-Z][a-z]+) ([A-Z][a-z]+) (\\d{3}-\\d{3}-\\d{4})";
@@ -52,7 +58,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                 switch (messageText) {
                     case ("/start"): {
                         startCommandReceived(chatId, update.message().chat().firstName());
-
                         break;
                     }
                     case ("/info_cat_shelter"): {
@@ -95,8 +100,17 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                         sendMessage(chatId, HELP_DOGS_SHELTER);
                         break;
                     }
+                    case ("/cat"): {
+                        clientService.saveClientWithoutInfo(chatId, "cat");
+                        break;
+                    }
+                    case ("/dog"): {
+                        clientService.saveClientWithoutInfo(chatId, "dog");
+                        break;
+                    }
                     default: {
-                        prepareAndSendMessage(chatId, "Команда не распознана");
+                        prepareAndSendMessage(chatId);
+
                         break;
                     }
                 }
@@ -107,10 +121,26 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
     }
 
+    private InlineKeyboardMarkup buttons1() {
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Cat").callbackData("/cat"));
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Dog").callbackData("/dog"));
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("volunteer").callbackData("/volunteer"));
+        return inlineKeyboardMarkup;
+    }
+
     private void startCommandReceived(long chatId, String name) {
         String answer = "Привет " + name + ". Выбери, какой приют тебе нужен: /cat для кошачего и /dog для собачьего! Чтобы оставить данные, воспользуйтесь /profile";
         logger.info("Replied to user " + name);
+        SendMessage sendMessage = new SendMessage(chatId, answer);
+
+        Keyboard keyboard = new ReplyKeyboardMarkup("/cat", "/dog")
+                .resizeKeyboard(true)
+                .oneTimeKeyboard(true)
+                .selective(true);
+        sendMessage.replyMarkup(keyboard);
         sendMessage(chatId, answer);
+
     }
 
     private void sendMessage(long chatId, String textToSend) {
