@@ -21,9 +21,16 @@ import java.util.regex.Pattern;
 
 import static com.skyteam.animalshelterbot.listener.constants.ConstantsForBotMessages.*;
 
+/**
+ * Реализует функционал телеграм-бота.
+ * @author leshka290
+ *
+ */
 @Service
 public class TelegramBotUpdatesListener implements UpdatesListener {
-
+    /**
+     * Переменная для реализации логирования приложения.
+     */
     private final Logger logger = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
 
     @Autowired
@@ -36,6 +43,9 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         this.clientService = clientService;
     }
 
+    /**
+     * Регулярное выражение для распознавания вводимых пользователем данных и сохранением их в БД.
+     */
     String regex = "([A-Z][a-z]+) ([A-Z][a-z]+) (\\d{3}-\\d{3}-\\d{4})";
 
     Pattern pattern = Pattern.compile(regex);
@@ -46,6 +56,9 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         telegramBot.setUpdatesListener(this);
     }
 
+    /**
+     * Основной функционал телеграм-бота, отвечающий за прием и отправку сообщений пользователям.
+     */
     @Override
     public int process(List<Update> updates) {
         updates.forEach(update -> {
@@ -121,6 +134,9 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
     }
 
+    /**
+     * Создает кнопки выбора приюта или вызова волонтера.
+     */
     private InlineKeyboardMarkup buttons1() {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Cat").callbackData("/cat"));
@@ -129,12 +145,17 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         return inlineKeyboardMarkup;
     }
 
+    /**
+     * Метод отправляет приветственное сообщение пользователю и создаёт кнопки для выбора приюта.
+     * @param chatId идентификатор чата
+     * @param name имя пользователя
+     */
     private void startCommandReceived(long chatId, String name) {
-        String answer = "Привет " + name + ". Выбери, какой приют тебе нужен: /cat для кошачего и /dog для собачьего! Чтобы оставить данные, воспользуйтесь /profile";
+        String answer = "Привет " + name + ". Выбери, какой приют тебе нужен: /cats для кошачего и /dogs для собачьего! Чтобы оставить данные, воспользуйтесь /profile";
         logger.info("Replied to user " + name);
         SendMessage sendMessage = new SendMessage(chatId, answer);
 
-        Keyboard keyboard = new ReplyKeyboardMarkup("/cat", "/dog")
+        Keyboard keyboard = new ReplyKeyboardMarkup("/cats", "/dogs")
                 .resizeKeyboard(true)
                 .oneTimeKeyboard(true)
                 .selective(true);
@@ -143,11 +164,22 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
     }
 
+    /**
+     * Метод для отправки сообщения пользоваелю.
+     * @param chatId идентификатор чата
+     * @param textToSend текст сообщения для отправки пользователю
+     */
     private void sendMessage(long chatId, String textToSend) {
         SendMessage message = new SendMessage(chatId, textToSend);
         executeMessage(message);
     }
 
+    /**
+     * Отправляет сообщение пользователю о необходимости ввести контактные данные.
+     * <p>
+     * Используется метод {@code sendMessage(long chatId, String textToSend)}
+     * @param chatId идентификатор чата
+     */
     private void fillProfileMessage(long chatId) {
         String message = "Введите данные в следующем формате: ИМЯ ФАМИЛИЯ НОМЕР";
         sendMessage(chatId, message);
@@ -157,9 +189,12 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         telegramBot.execute(message);
     }
 
+    /**
+     * Отправляет пользователю сообщение о некорректности вводимых данных.
+     * @param chatId идентификатор чата
+     */
     private void prepareAndSendMessage(Long chatId) {
         SendMessage message = new SendMessage(chatId, "Команда не распознана");
-
         executeMessage(message);
     }
 }

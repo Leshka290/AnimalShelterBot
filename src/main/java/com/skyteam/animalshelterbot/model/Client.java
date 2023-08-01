@@ -2,11 +2,28 @@ package com.skyteam.animalshelterbot.model;
 
 import java.util.Objects;
 
+/**
+ * Абстрактный класс клиент приюта для кошек(или собак) со свойствами:
+ * <p>
+ * <b>firstName</b>,<b>lastName</b>,<b>phoneNumber</b>,<b>chatId</b>
+ * @author youcanwakemeup
+ */
 public abstract class Client {
-
+    /**
+     * Имя клиента
+     */
     private String firstName;
+    /**
+     * Фамилия клиента
+     */
     private String lastName;
+    /**
+     * Телефонный номер клиента
+     */
     private Long phoneNumber;
+    /**
+     * Идентификатор чата
+     */
     private Long chatId;
 
 
