@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---asharipov: create tables for clients
+-- changeset asharipov:1
 
 CREATE TABLE cat_client (
     id BIGINT PRIMARY KEY,
