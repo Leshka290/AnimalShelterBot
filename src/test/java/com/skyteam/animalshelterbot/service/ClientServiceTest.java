@@ -1,11 +1,11 @@
 package com.skyteam.animalshelterbot.service;
 
-import com.skyteam.animalshelterbot.listener.constants.PetType;
 import com.skyteam.animalshelterbot.model.CatClient;
 import com.skyteam.animalshelterbot.model.DogClient;
 import com.skyteam.animalshelterbot.repository.CatClientRepository;
 import com.skyteam.animalshelterbot.repository.DogClientRepository;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -30,19 +30,23 @@ public class ClientServiceTest {
     @Test
     public void testSaveClientWithoutInfoForCat() {
         Long chatId = 123L;
-        PetType animalType = PetType.CAT;
+        String animalType = "cat";
+        CatClient catClient = new CatClient("Cat", "Client", 0L, chatId);
+        when(catClientRepository.save(Mockito.any(CatClient.class))).thenReturn(catClient);
         clientService.saveClientWithoutInfo(chatId, animalType);
-        verify(catClientRepository).save(any(CatClient.class));
-        verify(dogClientRepository, never()).save(any(DogClient.class));
+        verify(catClientRepository, Mockito.times(1)).save(Mockito.any(CatClient.class));
+        verify(dogClientRepository, Mockito.times(0)).save(Mockito.any(DogClient.class));
     }
 
     @Test
     public void testSaveClientWithoutInfoForDog() {
         Long chatId = 456L;
-        PetType animalType = PetType.DOG;
+        String animalType = "dog";
+        DogClient dogClient = new DogClient("Dog", "Client", 0L, chatId);
+        when(dogClientRepository.save(Mockito.any(DogClient.class))).thenReturn(dogClient);
         clientService.saveClientWithoutInfo(chatId, animalType);
-        verify(dogClientRepository).save(any(DogClient.class));
-        verify(catClientRepository, never()).save(any(CatClient.class));
+        verify(catClientRepository, Mockito.times(0)).save(Mockito.any(CatClient.class));
+        verify(dogClientRepository, Mockito.times(1)).save(Mockito.any(DogClient.class));
     }
 
     @Test
