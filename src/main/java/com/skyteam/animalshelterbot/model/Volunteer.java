@@ -28,7 +28,10 @@ public class Volunteer {
      * Фамилия волонтера
      */
     private String lastName;
-
+    /**
+     * Телефонный номер волонтера
+     */
+    private Long phoneNumber;
     /**
      * Идентификатор чата
      */
