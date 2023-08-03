@@ -53,6 +53,7 @@ CREATE TABLE volunteers
     id           BIGINT PRIMARY KEY,
     first_name   VARCHAR,
     last_name    VARCHAR,
+    phone        VARCHAR,
     chat_id      VARCHAR, -- telegram id
-    shelter_id   INT
+    shelter_id   INT -- shelter id
 );
