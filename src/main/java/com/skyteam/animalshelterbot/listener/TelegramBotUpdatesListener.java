@@ -133,13 +133,13 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 //            }
             case ("/cats"): {
                 SendMessage message = new SendMessage(chatId, "Приют кошек");
-                message.replyMarkup(buttonsInfoCats());
+                message.replyMarkup(buttonsStartMenuCats());
                 sendMessage(message);
                 break;
             }
             case ("/dogs"): {
                 SendMessage message = new SendMessage(chatId, "Приют собак");
-                message.replyMarkup(buttonsInfoDogs());
+                message.replyMarkup(buttonsStartMenuDogs());
                 sendMessage(message);
                 break;
             }
@@ -177,6 +177,16 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         if (callbackQuery != null) {
             long chatId = callbackQuery.message().chat().id();
             switch (callbackQuery.data()) {
+                case "start_cat_shelter":
+                    SendMessage message = new SendMessage(chatId, "Приют кошек");
+                    message.replyMarkup(buttonsInfoCats());
+                    sendMessage(message);
+                    break;
+                case "start_dog_shelter":
+                    message = new SendMessage(chatId, "Приют собак");
+                    message.replyMarkup(buttonsInfoDogs());
+                    sendMessage(message);
+                    break;
                 case "info_cat_shelter":
                     sendMessage(chatId, INFO_ABOUT_CAT_SHELTER);
                     break;
@@ -226,6 +236,24 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Для получения информации о расписании и адресе").callbackData("schedule_and_address_dog_shelter"));
         inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Информация о подаче заявки на пропуск").callbackData("pass_information_dog_shelter"));
         inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Информация о правилах безопасности на территории приюта").callbackData("safety_information_dog_shelter"));
+        return inlineKeyboardMarkup;
+    }
+
+    private InlineKeyboardMarkup buttonsStartMenuCats() {
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Для получения информации о приюте").callbackData("start_cat_shelter"));
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Как взять животное из приюта").callbackData("how_adopt_animal_from_shelter"));
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Прислать отчет о питомце").callbackData("submit_pet_report"));
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Позвать волонтера").callbackData("call_volunteer"));
+        return inlineKeyboardMarkup;
+    }
+
+    private InlineKeyboardMarkup buttonsStartMenuDogs() {
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Для получения информации о приюте").callbackData("start_dog_shelter"));
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Как взять животное из приюта").callbackData("how_adopt_animal_from_shelter"));
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Прислать отчет о питомце").callbackData("submit_pet_report"));
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Позвать волонтера").callbackData("call_volunteer"));
         return inlineKeyboardMarkup;
     }
 

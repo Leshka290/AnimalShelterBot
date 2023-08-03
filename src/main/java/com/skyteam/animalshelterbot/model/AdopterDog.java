@@ -13,6 +13,7 @@ import javax.persistence.Id;
 public class AdopterDog {
 
     @Id
+    private Long id;
     private Long chatId;
     private String firstName;
     private String lastName;
