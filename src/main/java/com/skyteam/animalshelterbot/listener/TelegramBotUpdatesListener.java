@@ -239,6 +239,9 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         return inlineKeyboardMarkup;
     }
 
+    /**
+     * Создает кнопки при выборе приюта кошек.
+     */
     private InlineKeyboardMarkup buttonsStartMenuCats() {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Для получения информации о приюте").callbackData("start_cat_shelter"));
@@ -248,6 +251,9 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         return inlineKeyboardMarkup;
     }
 
+    /**
+     * Создает кнопки при выборе приюта собак.
+     */
     private InlineKeyboardMarkup buttonsStartMenuDogs() {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Для получения информации о приюте").callbackData("start_dog_shelter"));
