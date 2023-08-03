@@ -11,6 +11,7 @@ import javax.persistence.Id;
 public class AdopterCat {
 
     @Id
+    private Long id;
     private Long chatId;
     private String firstName;
     private String lastName;

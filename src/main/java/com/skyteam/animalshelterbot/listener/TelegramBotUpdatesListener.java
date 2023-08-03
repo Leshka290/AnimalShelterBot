@@ -242,18 +242,18 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private InlineKeyboardMarkup buttonsStartMenuCats() {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Для получения информации о приюте").callbackData("start_cat_shelter"));
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Как взять животное из приюта").callbackData("start_cat_shelter"));
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Прислать отчет о питомце").callbackData("start_cat_shelter"));
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Позвать волонтера ").callbackData("start_cat_shelter"));
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Как взять животное из приюта").callbackData("how_adopt_animal_from_shelter"));
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Прислать отчет о питомце").callbackData("submit_pet_report"));
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Позвать волонтера").callbackData("call_volunteer"));
         return inlineKeyboardMarkup;
     }
 
     private InlineKeyboardMarkup buttonsStartMenuDogs() {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Для получения информации о приюте").callbackData("start_dog_shelter"));
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Как взять животное из приюта").callbackData("start_cat_shelter"));
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Прислать отчет о питомце").callbackData("start_cat_shelter"));
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Позвать волонтера ").callbackData("start_cat_shelter"));
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Как взять животное из приюта").callbackData("how_adopt_animal_from_shelter"));
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Прислать отчет о питомце").callbackData("submit_pet_report"));
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Позвать волонтера").callbackData("call_volunteer"));
         return inlineKeyboardMarkup;
     }
 
