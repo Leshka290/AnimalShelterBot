@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Абстрактный класс клиент приюта для кошек(или собак) со свойствами:
+ * Класс клиент приюта со свойствами:
  * <p>
  * <b>firstName</b>,<b>lastName</b>,<b>phoneNumber</b>,<b>chatId</b>
  *
