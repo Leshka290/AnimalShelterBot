@@ -7,7 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 
 /**
- * Класс усыновителя приюта для кошек со свойствами:
+ * Класс усыновителя приюта для собак со свойствами:
  * <p>
  * <b>id</b>,<b>chatId</b>,<b>firstName</b>,<b>lastName</b>,<b>userName</b>
  * ,<b>passport</b>,<b>age</b>,<b>phoneNumber</b>,<b>volunteerId</b>,<b>status</b>
@@ -16,7 +16,7 @@ import javax.persistence.Id;
  */
 @Entity
 @Data
-public class AdopterCat {
+public class Adopter {
 
     @Id
     private Long id;
