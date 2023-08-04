@@ -2,6 +2,18 @@ package com.skyteam.animalshelterbot.listener.constants;
 
 public class ConstantsForBotMessages {
     /**
+     * Выбор типа приюта
+     */
+    public final static String SHELTER_TYPE_SELECT = "Привет, выберите тип приюта ";
+    /**
+     * Приветственное меню для приюта собак
+     */
+    public final static String DOG_SHELTER_WELCOME = "Вас приветствует приют для собак. Чем я могу Вам помочь? ";
+    /**
+     * Приветственное меню для приюта кошек
+     */
+    public final static String CAT_SHELTER_WELCOME = "Вас приветствует приют для кошек. Чем я могу Вам помочь? ";
+    /**
      * Общая информация о приюте для кошек.
      */
     public static final String INFO_ABOUT_CAT_SHELTER = "Кошкин дом - самый лучший приют для котиков. Мы заботимся о своих пушистых воспитанниках и хотим быть уверены, что каждый получит теплые заботливые руки.";
