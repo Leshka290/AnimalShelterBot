@@ -46,6 +46,15 @@ CREATE TABLE adopters_cat
     volunteer_id INT      -- Lookup to [volunteers] table
 );
 
+CREATE TABLE client
+(
+    id          BIGINT PRIMARY KEY,
+    firstName   VARCHAR(50),
+    lastName    VARCHAR(50),
+    phoneNumber BIGINT,
+    chatId      BIGINT,
+    lastPetType INT
+);
 
 --changeset Kostuyra
 CREATE TABLE volunteers
