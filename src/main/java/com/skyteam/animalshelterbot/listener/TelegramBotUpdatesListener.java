@@ -57,9 +57,9 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     /**
      * Регулярное выражение для распознавания вводимых пользователем данных и сохранением их в БД.
      */
-    String regex = "([A-Z][a-z]+) ([A-Z][a-z]+) (\\d{3}-\\d{3}-\\d{4})";
+    private final String regex = "([A-Z][a-z]+) ([A-Z][a-z]+) (\\d{3}-\\d{3}-\\d{4})";
 
-    Pattern pattern = Pattern.compile(regex);
+    private final Pattern pattern = Pattern.compile(regex);
 
 
     @PostConstruct
