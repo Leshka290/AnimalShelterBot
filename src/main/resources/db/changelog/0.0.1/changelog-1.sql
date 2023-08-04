@@ -18,7 +18,7 @@ CREATE TABLE dog_client
     lastName    VARCHAR(50),
     phoneNumber BIGINT,
     chatId      BIGINT
-)
+);
 
 --changeset leshka290
 
@@ -54,4 +54,15 @@ CREATE TABLE client
     phoneNumber BIGINT,
     chatId      BIGINT,
     lastPetType INT
+);
+
+--changeset Kostuyra
+CREATE TABLE volunteers
+(
+    id           BIGINT PRIMARY KEY,
+    first_name   VARCHAR,
+    last_name    VARCHAR,
+    phone        VARCHAR,
+    chat_id      VARCHAR, -- telegram id
+    shelter_id   INT -- shelter id
 );
