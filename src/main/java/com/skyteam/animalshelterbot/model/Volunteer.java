@@ -1,6 +1,5 @@
 package com.skyteam.animalshelterbot.model;
 
-import com.skyteam.animalshelterbot.listener.constants.AdopterStatus;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -16,7 +15,7 @@ import javax.persistence.Id;
 @Entity
 @Data
 @NoArgsConstructor
-public class AdopterVolunteer {
+public class Volunteer {
     @Id
     @GeneratedValue
     private Long id;
@@ -42,5 +41,5 @@ public class AdopterVolunteer {
      */
     private Long shelterId;
 
-    private AdopterStatus status;
+
 }
