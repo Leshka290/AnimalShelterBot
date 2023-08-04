@@ -1,5 +1,6 @@
 package com.skyteam.animalshelterbot.service;
 
+import com.skyteam.animalshelterbot.listener.constants.PetType;
 import com.skyteam.animalshelterbot.model.CatClient;
 import com.skyteam.animalshelterbot.model.DogClient;
 import com.skyteam.animalshelterbot.repository.CatClientRepository;
@@ -7,6 +8,9 @@ import com.skyteam.animalshelterbot.repository.DogClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
+
+import static com.skyteam.animalshelterbot.listener.constants.PetType.CAT;
+import static com.skyteam.animalshelterbot.listener.constants.PetType.DOG;
 
 /**
  *Реализует запись в БД данных клиентов приюта.
@@ -28,11 +32,11 @@ public class ClientService {
      * @param chatId идентификатор чата
      * @param animalType тип животного (кошка или собака)
      */
-    public void saveClientWithoutInfo(Long chatId, String animalType) {
-        if (animalType.equals("cat")) {
+    public void saveClientWithoutInfo(Long chatId, PetType animalType) {
+        if (animalType.equals(CAT)) {
             CatClient catClient = new CatClient("Cat", "Client", 0L, chatId);
             catClientRepository.save(catClient);
-        } else if (animalType.equals("dog")) {
+        } else if (animalType.equals(DOG)) {
             DogClient dogClient = new DogClient("Dog", "Client", 0L, chatId);
             dogClientRepository.save(dogClient);
         }
