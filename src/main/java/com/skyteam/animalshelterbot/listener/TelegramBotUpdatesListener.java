@@ -6,24 +6,27 @@ import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
-import com.pengrad.telegrambot.model.request.Keyboard;
+import com.pengrad.telegrambot.model.request.KeyboardButton;
 import com.pengrad.telegrambot.model.request.ReplyKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.SendResponse;
+import com.skyteam.animalshelterbot.listener.constants.PetType;
 import com.skyteam.animalshelterbot.model.Client;
-import com.skyteam.animalshelterbot.repository.DogClientRepository;
+import com.skyteam.animalshelterbot.repository.ClientRepository;
 import com.skyteam.animalshelterbot.service.ClientService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import javax.annotation.PostConstruct;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.skyteam.animalshelterbot.listener.constants.ConstantsForBotMessages.*;
+import static com.skyteam.animalshelterbot.listener.constants.ConstantsButtons.*;
+import static com.skyteam.animalshelterbot.listener.constants.PetType.CAT;
+import static com.skyteam.animalshelterbot.listener.constants.PetType.DOG;
 
 /**
  * Реализует функционал телеграм-бота.
@@ -40,19 +43,28 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     @Autowired
     private TelegramBot telegramBot = new TelegramBot("BOT_TOKEN");
 
+    private PetType petType;
     private final ClientService clientService;
+    private final ClientRepository clientRepository;
 
 
-    public TelegramBotUpdatesListener(ClientService clientService) {
+    public TelegramBotUpdatesListener(ClientRepository clientRepository, ClientService clientService) {
         this.clientService = clientService;
+        this.clientRepository = clientRepository;
     }
 
     /**
      * Регулярное выражение для распознавания вводимых пользователем данных и сохранением их в БД.
      */
-    String regex = "([A-Z][a-z]+) ([A-Z][a-z]+) (\\d{3}-\\d{3}-\\d{4})";
+    private final String regex = "([A-Z][a-z]+) ([A-Z][a-z]+) (\\d{3}-\\d{3}-\\d{4})";
 
-    Pattern pattern = Pattern.compile(regex);
+    private final Pattern pattern = Pattern.compile(regex);
+
+    /**
+     * Подключение файла пропертис с сообщениями
+     */
+    private final ResourceBundle messagesBundle = ResourceBundle.getBundle("bot_messages");
+
 
 
     @PostConstruct
@@ -94,78 +106,25 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         long chatId = update.message().chat().id();
         Matcher matcher = pattern.matcher(messageText);
 
-        switch (update.message().text()) {
-            case ("/start"): {
-                startCommandReceived(chatId, update.message().chat().firstName());
-                break;
-            }
-//            case ("/info_cat_shelter"): {
-//                sendMessage(chatId, INFO_ABOUT_CAT_SHELTER);
-//                break;
-//            }
-//            case ("/info_dog_shelter"): {
-//                sendMessage(chatId, INFO_ABOUT_DOG_SHELTER);
-//                break;
-//            }
-//            case ("/schedule_and_address_cat_shelter"): {
-//                sendMessage(chatId, SCHEDULE_AND_ADDRESS_CAT_SHELTER);
-//                break;
-//            }
-//            case ("/schedule_and_address_dog_shelter"): {
-//                sendMessage(chatId, SCHEDULE_AND_ADDRESS_DOG_SHELTER);
-//                break;
-//            }
-//            case ("/pass_information_cat_shelter"): {
-//                sendMessage(chatId, PASS_INFORMATION_CAT_SHELTER);
-//                break;
-//            }
-//            case ("/pass_information_dog_shelter"): {
-//                sendMessage(chatId, PASS_INFORMATION_DOG_SHELTER);
-//                break;
-//            }
-//            case ("/safety_information_cat_shelter"): {
-//                sendMessage(chatId, SAFETY_INFORMATION_CAT_SHELTER);
-//                break;
-//            }
-//            case ("/safety_information_dog_shelter"): {
-//                sendMessage(chatId, SAFETY_INFORMATION_DOG_SHELTER);
-//                break;
-//            }
-            case ("/cats"): {
-                SendMessage message = new SendMessage(chatId, "Приют кошек");
-                message.replyMarkup(buttonsInfoCats());
-                sendMessage(message);
-                break;
-            }
-            case ("/dogs"): {
-                SendMessage message = new SendMessage(chatId, "Приют собак");
-                message.replyMarkup(buttonsInfoDogs());
-                sendMessage(message);
-                break;
-            }
-            case ("/cat"): {
-                clientService.saveClientWithoutInfo(chatId, "cat");
-                logger.info("Replied to user " + chatId);
-                break;
-            }
-            case ("/dog"): {
-                clientService.saveClientWithoutInfo(chatId, "dog");
-                break;
-            }
-            case ("/profile"): {
-                fillProfileMessage(chatId);
-                break;
-            }
-            default: {
-                prepareAndSendMessage(chatId);
-                break;
-            }
-        }
         if (matcher.find()) {
             String name = matcher.group(1);
             String lastName = matcher.group(2);
             long phoneNumber = Long.parseLong(matcher.group(3));
             clientService.saveClientsInfo(name, lastName, phoneNumber, chatId);
+        }
+
+        switch (update.message().text()) {
+            case "/start":
+            case BUTTON_MAIN_MENU:
+                processStartCommand(update);
+                break;
+            case BUTTON_CALL_VOLUNTEER:
+                // Call a volunteer
+//                callVolunteer(update);
+                break;
+            case BUTTON_CANCEL:
+                cancelShareContact(update);
+                break;
         }
     }
 
@@ -177,75 +136,274 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         if (callbackQuery != null) {
             long chatId = callbackQuery.message().chat().id();
             switch (callbackQuery.data()) {
-                case "info_cat_shelter":
-                    sendMessage(chatId, INFO_ABOUT_CAT_SHELTER);
+
+                case BUTTON_CAT_SHELTER_CALLBACK:
+                    sendButtonClickMessage(chatId, BUTTON_CAT_SHELTER);
+                    processCatShelterClick(chatId);
                     break;
-                case "schedule_and_address_cat_shelter":
-                    sendMessage(chatId, SCHEDULE_AND_ADDRESS_CAT_SHELTER);
+                case BUTTON_DOG_SHELTER_CALLBACK:
+                    sendButtonClickMessage(chatId, BUTTON_DOG_SHELTER);
+                    processDogShelterClick(chatId);
                     break;
-                case "pass_information_cat_shelter":
-                    sendMessage(chatId, PASS_INFORMATION_CAT_SHELTER);
+                case BUTTON_INFO_SHELTER_CALLBACK:
+                    sendButtonClickMessage(chatId, BUTTON_WELCOME_INFO_CAT_SHELTER);
+                    processInfoPetClick(chatId, update);
                     break;
-                case "safety_information_cat_shelter":
-                    sendMessage(chatId, SAFETY_INFORMATION_CAT_SHELTER);
+                case BUTTON_SUBMIT_PET_REPORT_CALLBACK :
+                    sendButtonClickMessage(chatId, BUTTON_SUBMIT_PET_REPORT);
+                    processAdoptClick(chatId);
                     break;
-                case "info_dog_shelter":
-                    sendMessage(chatId, INFO_ABOUT_DOG_SHELTER);
+                case BUTTON_SCHEDULE_AND_ADDRESS_SHELTER_CALLBACK:
+                    sendButtonClickMessage(chatId, BUTTON_SCHEDULE_AND_ADDRESS_SHELTER);
                     break;
-                case "schedule_and_address_dog_shelter":
-                    sendMessage(chatId, SCHEDULE_AND_ADDRESS_DOG_SHELTER);
+                case BUTTON_HOW_ADOPT_ANIMAL_FROM_SHELTER_CALLBACK:
+                    sendButtonClickMessage(chatId, BUTTON_HOW_ADOPT_ANIMAL_FROM_SHELTER);
+                    processAdoptClick(chatId);
                     break;
-                case "pass_information_dog_shelter":
-                    sendMessage(chatId, PASS_INFORMATION_DOG_SHELTER);
+                case BUTTON_REPORT_TEMPLATE_CALLBACK:
+                    sendButtonClickMessage(chatId, BUTTON_REPORT_TEMPLATE);
                     break;
-                case "safety_information_dog_shelter":
-                    sendMessage(chatId, SAFETY_INFORMATION_DOG_SHELTER);
+                case BUTTON_PASS_INFORMATION_CAT_SHELTER_CALLBACK:
+                    sendButtonClickMessage(chatId, messagesBundle.getString("PASS_INFORMATION_CAT_SHELTER"));
+                    break;
+                case BUTTON_SAFETY_INF_CAT_SHELTER_CALLBACK:
+                    sendButtonClickMessage(chatId, messagesBundle.getString("SAFETY_INFORMATION_CAT_SHELTER"));
                     break;
             }
         }
     }
 
     /**
+     * Создает кнопки выбора приютов.
+     */
+    private InlineKeyboardMarkup createButtonsPetTypeSelect() {
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(BUTTON_CAT_SHELTER).callbackData(BUTTON_CAT_SHELTER_CALLBACK));
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(BUTTON_DOG_SHELTER).callbackData(BUTTON_DOG_SHELTER_CALLBACK));
+        return inlineKeyboardMarkup;
+    }
+
+    /**
+     * Создает кнопки основного меню при уже выбраном приюте
+     */
+    private InlineKeyboardMarkup createButtonsMenu() {
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(BUTTON_INFO_SHELTER).callbackData(BUTTON_INFO_SHELTER_CALLBACK));
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(BUTTON_HOW_ADOPT_ANIMAL_FROM_SHELTER).callbackData(BUTTON_HOW_ADOPT_ANIMAL_FROM_SHELTER_CALLBACK));
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(BUTTON_SUBMIT_PET_REPORT).callbackData(BUTTON_SUBMIT_PET_REPORT_CALLBACK));
+        return inlineKeyboardMarkup;
+    }
+
+    /**
      * Создает кнопки выбора информации о приюте кошек.
      */
-    private InlineKeyboardMarkup buttonsInfoCats() {
+    private InlineKeyboardMarkup buttonsInfoShelter() {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Для получения информации о приюте").callbackData("info_cat_shelter"));
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Для получения информации о расписании и адресе").callbackData("schedule_and_address_cat_shelter"));
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Информация о подаче заявки на пропуск").callbackData("pass_information_cat_shelter"));
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Информация о правилах безопасности на территории приюта").callbackData("safety_information_cat_shelter"));
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Для получения информации о приюте").callbackData(BUTTON_WELCOME_INFO_CAT_SHELTER_CALLBACK));
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Для получения информации о расписании и адресе").callbackData(BUTTON_SCHEDULE_AND_ADDRESS_SHELTER_CALLBACK));
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Информация о подаче заявки на пропуск").callbackData(BUTTON_PASS_INFORMATION_CAT_SHELTER_CALLBACK));
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Информация о правилах безопасности на территории приюта").callbackData(BUTTON_SAFETY_INF_CAT_SHELTER_CALLBACK));
         return inlineKeyboardMarkup;
     }
 
     /**
-     * Создает кнопки выбора информации о приюте Собак.
+     * Создает кнопки при выборе приюта
      */
-    private InlineKeyboardMarkup buttonsInfoDogs() {
+    private InlineKeyboardMarkup buttonsStartMenu() {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Для получения информации о приюте").callbackData("info_dog_shelter"));
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Для получения информации о расписании и адресе").callbackData("schedule_and_address_dog_shelter"));
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Информация о подаче заявки на пропуск").callbackData("pass_information_dog_shelter"));
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton("Информация о правилах безопасности на территории приюта").callbackData("safety_information_dog_shelter"));
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(BUTTON_INFO_SHELTER).callbackData(BUTTON_INFO_SHELTER_CALLBACK));
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(BUTTON_HOW_ADOPT_ANIMAL_FROM_SHELTER).callbackData(BUTTON_HOW_ADOPT_ANIMAL_FROM_SHELTER_CALLBACK));
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(BUTTON_SUBMIT_PET_REPORT).callbackData(BUTTON_SUBMIT_PET_REPORT_CALLBACK));
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(BUTTON_CALL_VOLUNTEER).callbackData(BUTTON_CALL_VOLUNTEER_CALLBACK));
         return inlineKeyboardMarkup;
     }
 
     /**
-     * Метод отправляет приветственное сообщение пользователю и создаёт кнопки для выбора приюта.
-     *
-     * @param chatId идентификатор чата
-     * @param name   имя пользователя
+     * Кнопки для отправки данных.
      */
-    private void startCommandReceived(long chatId, String name) {
-        String answer = "Привет " + name + ". Выбери, какой приют тебе нужен: /cats для кошачего и /dogs для собачьего! Чтобы оставить данные, воспользуйтесь /profile";
-        logger.info("Replied to user " + name);
-        SendMessage sendMessage = new SendMessage(chatId, answer);
+    private InlineKeyboardMarkup createButtonsReport() {
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(BUTTON_REPORT_TEMPLATE).callbackData(BUTTON_REPORT_TEMPLATE_CALLBACK));
+        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(BUTTON_SEND_REPORT).callbackData(BUTTON_SEND_REPORT_CALLBACK));
+        return inlineKeyboardMarkup;
+    }
 
-        Keyboard keyboard = new ReplyKeyboardMarkup("/cats", "/dogs")
-                .resizeKeyboard(true)
-                .oneTimeKeyboard(true)
-                .selective(true);
-        sendMessage.replyMarkup(keyboard);
-        sendMessage(chatId, answer);
+    /**
+     * Создает кнопки отправки данных пользователя.
+     */
+    private ReplyKeyboardMarkup requestContactKeyboardButton() {
+        KeyboardButton keyboardButtonShare = new KeyboardButton(BUTTON_SHARE_CONTACT);
+        KeyboardButton keyboardButtonCancel = new KeyboardButton(BUTTON_CANCEL);
+        keyboardButtonShare.requestContact(true);
+        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(keyboardButtonShare, keyboardButtonCancel);
+        replyKeyboardMarkup.resizeKeyboard(true);
+        return replyKeyboardMarkup;
+    }
+
+    /**
+     * Создает главное меню.
+     */
+    private ReplyKeyboardMarkup mainMenuKeyboardButtons() {
+        KeyboardButton keyboardButtonMain = new KeyboardButton(BUTTON_MAIN_MENU);
+        KeyboardButton keyboardButtonCall = new KeyboardButton(BUTTON_CALL_VOLUNTEER);
+        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(keyboardButtonMain, keyboardButtonCall);
+        replyKeyboardMarkup.resizeKeyboard(true);
+        return replyKeyboardMarkup;
+    }
+
+
+    /**
+     * Метод проверки пользователя в БД и если он там есть то пользователь начинает с выбраного приюта
+     * Если пользователя нет, то он сначала выбирает приют
+     */
+    private void processStartCommand(Update update) {
+        long chatId = update.message().chat().id();
+        Client client = clientRepository.findByChatId(chatId);
+        if (client == null) {
+            sendShelterTypeSelectMessage(chatId);
+        } else {
+            petType = client.getLastPetType();
+            if (petType == null) {
+                sendShelterTypeSelectMessage(chatId);
+                return;
+            }
+            switch (petType) {
+                case DOG:
+                    sendStartMessage(chatId, messagesBundle.getString("DOG_SHELTER_WELCOME"));
+                    break;
+                case CAT:
+                    sendStartMessage(chatId, messagesBundle.getString("CAT_SHELTER_WELCOME"));
+                    break;
+                default:
+                    sendShelterTypeSelectMessage(chatId);
+            }
+        }
+    }
+
+    /**
+     * Метод вызывается при выборе отправки данных пользователем
+     */
+    private void processAdoptClick(long chatId) {
+        if (petType == null) {
+            return;
+        }
+        String messageText = null;
+        switch (petType) {
+            case DOG:
+                messageText = BUTTON_HOW_ADOPT_ANIMAL_FROM_DOG_SHELTER;
+                break;
+            case CAT:
+                messageText = BUTTON_HOW_ADOPT_ANIMAL_FROM_CAT_SHELTER;
+                break;
+        }
+        SendMessage message = new SendMessage(chatId, messageText);
+        //createButtonsReport()- вместо этого метода необходимо добавить константы второго пункта
+        message.replyMarkup(createButtonsReport());
+        sendMessage(message);
+    }
+
+    /**
+     * Метод вызывается при выборе получения информации о приюте
+     */
+    private void processInfoPetClick(long chatId, Update update) {
+        if (petType == null) {
+            return;
+        }
+        String messageText = null;
+        switch (petType) {
+            case DOG:
+                messageText = BUTTON_WELCOME_INFO_DOG_SHELTER;
+                break;
+            case CAT:
+                messageText = BUTTON_WELCOME_INFO_CAT_SHELTER;
+                break;
+        }
+        SendMessage message = new SendMessage(chatId, messageText);
+        message.replyMarkup(buttonsInfoShelter());
+
+        sendMessage(message);
+    }
+
+    /**
+     * Метод начального выбора приюта и вывод сообщения пользователю
+     */
+    private void processStartClick(long chatId) {
+        if (petType == null) {
+            return;
+        }
+        String messageText = null;
+        switch (petType) {
+            case DOG:
+                messageText = BUTTON_WELCOME_INFO_DOG_SHELTER;
+                break;
+            case CAT:
+                messageText = BUTTON_WELCOME_INFO_CAT_SHELTER;
+                break;
+        }
+
+        SendMessage message = new SendMessage(chatId, messageText);
+        message.replyMarkup(buttonsStartMenu());
+        sendMessage(message);
+    }
+
+    /**
+     * Метод вызывается при выборе приюта собак и сохранение столбца типа питомца Cat
+     */
+    private void processCatShelterClick(long chatId) {
+        petType = CAT;
+        saveClient(chatId, petType);
+        sendStartMessage(chatId, messagesBundle.getString("CAT_SHELTER_WELCOME"));
+    }
+
+    /**
+     * Метод вызывается при выборе приюта собак и сохранение столбца типа питомца Dog
+     */
+    private void processDogShelterClick(long chatId) {
+        petType = DOG;
+        saveClient(chatId, petType);
+        sendStartMessage(chatId, messagesBundle.getString("DOG_SHELTER_WELCOME"));
+    }
+
+    /**
+     * Функционал телеграм-бота, отвечающий за отмену отправки контактных данных.
+     */
+    private void cancelShareContact(Update update) {
+        long chatId = update.message().chat().id();
+        SendMessage message = new SendMessage(chatId, BUTTON_CANCEL_SHARE_CONTACT);
+        sendMessage(message.replyMarkup(mainMenuKeyboardButtons()));
+    }
+
+    /**
+     * Метод сохранения клиента (гость) в БД таблицу client
+     */
+    private void saveClient(long chatId, PetType lastPetType) {
+        Client client = clientRepository.findByChatId(chatId);
+        if (client == null) {
+            client = new Client(chatId, lastPetType);
+        } else {
+            client.setLastPetType(lastPetType);
+        }
+        clientRepository.save(client);
+    }
+
+    /**
+     * Метод выбора типа приюта
+     */
+    private void sendShelterTypeSelectMessage(long chatId) {
+        SendMessage message = new SendMessage(chatId, messagesBundle.getString("SHELTER_TYPE_SELECT"));
+
+        message.replyMarkup(createButtonsPetTypeSelect());
+        sendMessage(message);
+    }
+
+    /**
+     * Метод для создания стартогого меню и отправки сообщения
+     */
+    private void sendStartMessage(long chatId, String messageText) {
+        SendMessage message = new SendMessage(chatId, messageText);
+
+        message.replyMarkup(createButtonsMenu());
+        sendMessage(message);
     }
 
     /**
@@ -257,6 +415,17 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private void sendMessage(long chatId, String textToSend) {
         SendMessage message = new SendMessage(chatId, textToSend);
         executeMessage(message);
+    }
+
+    /**
+     * Отправляет техническое сообщение о том, что кнопка была нажата.
+     * Можно отключить, если в этом нет необходимости.
+     *
+     * @param chatId  отправляет сообщение в этот чат
+     * @param message само сообщение
+     */
+    private void sendButtonClickMessage(long chatId, String message) {
+        sendMessage(new SendMessage(chatId, message));
     }
 
     /**

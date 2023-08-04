@@ -1,10 +1,15 @@
 package com.skyteam.animalshelterbot.model;
 
+import com.skyteam.animalshelterbot.listener.constants.PetType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+
 /**
- * Абстрактный класс клиент приюта для кошек(или собак) со свойствами:
+ * Класс клиент приюта со свойствами:
  * <p>
  * <b>firstName</b>,<b>lastName</b>,<b>phoneNumber</b>,<b>chatId</b>
  *
@@ -13,30 +18,29 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
+@Entity
 public class Client {
+
+    @Id
+    @GeneratedValue
+    private Long id;
     /**
      * Имя клиента
      */
     private String firstName;
-    /**
-     * Фамилия клиента
-     */
-    private String lastName;
-    /**
-     * Телефонный номер клиента
-     */
-    private Long phoneNumber;
+
     /**
      * Идентификатор чата
      */
     private Long chatId;
+    /**
+     * Последний выбор приюта
+     */
+    private PetType lastPetType;
 
 
-    public Client(String firstName, String lastName, Long phoneNumber, Long chatId) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.phoneNumber = phoneNumber;
+    public Client(Long chatId, PetType lastPetType) {
         this.chatId = chatId;
+        this.lastPetType = lastPetType;
     }
-
 }
