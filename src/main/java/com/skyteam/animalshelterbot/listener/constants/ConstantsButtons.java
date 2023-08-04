@@ -12,8 +12,8 @@ public class ConstantsButtons {
     public final static String BUTTON_SHARE_CONTACT = "Отправить контакт";
     public final static String BUTTON_CANCEL = "Отменить";
     public final static String BUTTON_CANCEL_SHARE_CONTACT = "Посылка контактных данных отменена.";
-    public final static String BUTTON_WELCOME_INFO_DOG_SHELTER = "Унать информацию о кошачем приюте";
-    public final static String BUTTON_WELCOME_INFO_CAT_SHELTER = "Узнать информацию о приюте собак";
+    public final static String BUTTON_WELCOME_INFO_CAT_SHELTER = "Унать информацию о кошачем приюте";
+    public final static String BUTTON_WELCOME_INFO_DOG_SHELTER = "Узнать информацию о приюте собак";
     public final static String BUTTON_INFO_SHELTER = "Узнать информацию о приюте";
     public final static String BUTTON_HOW_ADOPT_ANIMAL_FROM_SHELTER = "Как взять питомца из приюта";
     public final static String BUTTON_HOW_ADOPT_ANIMAL_FROM_CAT_SHELTER = "Как взять питомца из приюта кошек";

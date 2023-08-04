@@ -12,8 +12,10 @@ import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.SendResponse;
 import com.skyteam.animalshelterbot.listener.constants.PetType;
 import com.skyteam.animalshelterbot.model.Client;
+import com.skyteam.animalshelterbot.model.Pet;
 import com.skyteam.animalshelterbot.repository.ClientRepository;
 import com.skyteam.animalshelterbot.service.ClientService;
+import com.skyteam.animalshelterbot.service.PetService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,19 +49,24 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private PetType petType;
     private final ClientService clientService;
     private final ClientRepository clientRepository;
+    private final PetService petService;
 
 
-    public TelegramBotUpdatesListener(ClientRepository clientRepository, ClientService clientService) {
+    public TelegramBotUpdatesListener(ClientRepository clientRepository, ClientService clientService, PetService petService) {
         this.clientService = clientService;
         this.clientRepository = clientRepository;
+        this.petService = petService;
     }
 
     /**
      * Регулярное выражение для распознавания вводимых пользователем данных и сохранением их в БД.
      */
     private final String regex = "([A-Z][a-z]+) ([A-Z][a-z]+) (\\d{3}-\\d{3}-\\d{4})";
+    private final String regexForAddPet = "([a-zA-Z]{3})(\\s)([a-zA-Z]{4,6})(\\s)([a-zA-Z]+)(\\s)([a-zA-Z]+)(\\s)(\\d{1,2})";
 
     private final Pattern pattern = Pattern.compile(regex);
+    private final Pattern patternForAddPet = Pattern.compile(regexForAddPet);
+
 
 
     @PostConstruct
@@ -100,12 +107,24 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         String messageText = update.message().text();
         long chatId = update.message().chat().id();
         Matcher matcher = pattern.matcher(messageText);
+        Matcher matcherForAddPattern = patternForAddPet.matcher(messageText);
 
         if (matcher.find()) {
             String name = matcher.group(1);
             String lastName = matcher.group(2);
             long phoneNumber = Long.parseLong(matcher.group(3));
             clientService.saveClientsInfo(name, lastName, phoneNumber, chatId);
+        }
+
+        if (matcherForAddPattern.matches()) {
+            String type = matcherForAddPattern.group(1);
+            String gender = matcherForAddPattern.group(3);
+            String name = matcherForAddPattern.group(5);
+            String breed = matcherForAddPattern.group(7);
+            Integer age = Integer.valueOf(matcherForAddPattern.group(9));
+            Pet pet = new Pet(type, gender, name, breed, age);
+            petService.createPet(pet);
+            sendMessage(chatId,"Животное добавлено в БД");
         }
 
         switch (update.message().text()) {
