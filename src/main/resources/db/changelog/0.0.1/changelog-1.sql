@@ -18,7 +18,7 @@ CREATE TABLE dog_client
     lastName    VARCHAR(50),
     phoneNumber BIGINT,
     chatId      BIGINT
-)
+);
 
 --changeset leshka290
 
