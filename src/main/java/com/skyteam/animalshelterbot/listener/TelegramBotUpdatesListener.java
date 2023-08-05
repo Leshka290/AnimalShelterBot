@@ -20,14 +20,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import javax.annotation.PostConstruct;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.skyteam.animalshelterbot.listener.constants.ConstantsButtons.*;
-import static com.skyteam.animalshelterbot.listener.constants.ConstantsForBotMessages.*;
 import static com.skyteam.animalshelterbot.listener.constants.PetType.CAT;
 import static com.skyteam.animalshelterbot.listener.constants.PetType.DOG;
 
@@ -66,6 +65,12 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
     private final Pattern pattern = Pattern.compile(regex);
     private final Pattern patternForAddPet = Pattern.compile(regexForAddPet);
+
+
+    /**
+     * Подключение файла пропертис с сообщениями
+     */
+    private final ResourceBundle messagesBundle = ResourceBundle.getBundle("bot_messages");
 
 
 
@@ -178,10 +183,10 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     sendButtonClickMessage(chatId, BUTTON_REPORT_TEMPLATE);
                     break;
                 case BUTTON_PASS_INFORMATION_CAT_SHELTER_CALLBACK:
-                    sendButtonClickMessage(chatId, PASS_INFORMATION_CAT_SHELTER);
+                    sendButtonClickMessage(chatId, messagesBundle.getString("PASS_INFORMATION_CAT_SHELTER"));
                     break;
                 case BUTTON_SAFETY_INF_CAT_SHELTER_CALLBACK:
-                    sendButtonClickMessage(chatId, SAFETY_INFORMATION_CAT_SHELTER);
+                    sendButtonClickMessage(chatId, messagesBundle.getString("SAFETY_INFORMATION_CAT_SHELTER"));
                     break;
             }
         }
@@ -283,10 +288,10 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             }
             switch (petType) {
                 case DOG:
-                    sendStartMessage(chatId, DOG_SHELTER_WELCOME);
+                    sendStartMessage(chatId, messagesBundle.getString("DOG_SHELTER_WELCOME"));
                     break;
                 case CAT:
-                    sendStartMessage(chatId, CAT_SHELTER_WELCOME);
+                    sendStartMessage(chatId, messagesBundle.getString("CAT_SHELTER_WELCOME"));
                     break;
                 default:
                     sendShelterTypeSelectMessage(chatId);
@@ -366,7 +371,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private void processCatShelterClick(long chatId) {
         petType = CAT;
         saveClient(chatId, petType);
-        sendStartMessage(chatId, CAT_SHELTER_WELCOME);
+        sendStartMessage(chatId, messagesBundle.getString("CAT_SHELTER_WELCOME"));
     }
 
     /**
@@ -375,7 +380,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private void processDogShelterClick(long chatId) {
         petType = DOG;
         saveClient(chatId, petType);
-        sendStartMessage(chatId, DOG_SHELTER_WELCOME);
+        sendStartMessage(chatId, messagesBundle.getString("DOG_SHELTER_WELCOME"));
     }
 
     /**
@@ -404,7 +409,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      * Метод выбора типа приюта
      */
     private void sendShelterTypeSelectMessage(long chatId) {
-        SendMessage message = new SendMessage(chatId, SHELTER_TYPE_SELECT);
+        SendMessage message = new SendMessage(chatId, messagesBundle.getString("SHELTER_TYPE_SELECT"));
 
         message.replyMarkup(createButtonsPetTypeSelect());
         sendMessage(message);
