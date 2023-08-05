@@ -5,6 +5,8 @@ import lombok.Data;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import java.util.Collection;
 
 /**
  * Класс усыновителя приюта для собак со свойствами:
@@ -32,6 +34,6 @@ public class Adopter {
 
     private AdopterStatus status;
 
-//    @OneToMany(mappedBy = "adopterId")
-//    private Collection<Pet> pets;
+    @OneToMany(mappedBy = "adopterId")
+    private Collection<Pet> pets;
 }

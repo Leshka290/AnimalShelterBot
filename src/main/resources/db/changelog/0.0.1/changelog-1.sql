@@ -22,7 +22,7 @@ CREATE TABLE dog_client
 
 --changeset leshka290
 
-CREATE TABLE adopters_cat
+CREATE TABLE adopters
 (
     id           BIGINT PRIMARY KEY,
     first_name   VARCHAR,
@@ -30,18 +30,6 @@ CREATE TABLE adopters_cat
     passport     VARCHAR,
     age          INT,
     phoneNumber  VARCHAR,
-    chat_id      VARCHAR, -- telegram id
-    volunteer_id INT      -- Lookup to [volunteers] table
-);
-
-CREATE TABLE adopters_cat
-(
-    id           BIGINT PRIMARY KEY,
-    first_name   VARCHAR,
-    last_name    VARCHAR,
-    passport     VARCHAR,
-    age          INT,
-    phone        VARCHAR,
     chat_id      VARCHAR, -- telegram id
     volunteer_id INT      -- Lookup to [volunteers] table
 );
@@ -65,4 +53,13 @@ CREATE TABLE volunteers
     phone        VARCHAR,
     chat_id      VARCHAR, -- telegram id
     shelter_id   INT -- shelter id
+);
+
+CREATE TABLE pets
+(
+    id          BIGINT PRIMARY KEY,
+    nick_name   VARCHAR,
+    pet_type    INT,
+    sex         INT,
+    picture     BYTEA
 );
