@@ -2,6 +2,9 @@ package com.skyteam.animalshelterbot.repository;
 
 import com.skyteam.animalshelterbot.model.Pet;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface PetRepository extends JpaRepository<Pet,Long> {
+@Repository
+public interface PetRepository extends JpaRepository<Pet, Long> {
+
 }
