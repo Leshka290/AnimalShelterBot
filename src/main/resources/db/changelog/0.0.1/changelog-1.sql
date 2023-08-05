@@ -44,7 +44,18 @@ CREATE TABLE client
     lastPetType INT
 );
 
-CREATE TABLE IF NOT EXISTS pets
+--changeset Kostuyra
+CREATE TABLE volunteers
+(
+    id           BIGINT PRIMARY KEY,
+    first_name   VARCHAR,
+    last_name    VARCHAR,
+    phone        VARCHAR,
+    chat_id      VARCHAR, -- telegram id
+    shelter_id   INT -- shelter id
+);
+
+CREATE TABLE pets
 (
     id          BIGINT PRIMARY KEY,
     nick_name   VARCHAR,
