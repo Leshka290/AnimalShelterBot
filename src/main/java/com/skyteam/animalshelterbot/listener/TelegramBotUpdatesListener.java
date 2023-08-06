@@ -126,17 +126,17 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             clientService.saveClientsInfo(name, lastName, phoneNumber, chatId);
         }
 
-        if (matcherForAddPattern.matches()) {
-            PetType type = PetType.valueOf(matcherForAddPattern.group(1));
-            String nickName = matcherForAddPattern.group(5);
-            Sex sex = Sex.valueOf(matcherForAddPattern.group(3));
-            String breed = matcherForAddPattern.group(7);
-            Integer age = Integer.parseInt(matcherForAddPattern.group(9));
-            byte[] picture = matcherForAddPattern.group(11).getBytes();
-            Pet pet = new Pet(type,nickName,breed,sex,age,picture);
-            petService.createPet(pet);
-            sendMessage(chatId,"Животное добавлено в БД");
-        }
+//        if (matcherForAddPattern.matches()) {
+//            PetType type = PetType.valueOf(matcherForAddPattern.group(1));
+//            String nickName = matcherForAddPattern.group(5);
+//            Sex sex = Sex.valueOf(matcherForAddPattern.group(3));
+//            String breed = matcherForAddPattern.group(7);
+//            Integer age = Integer.parseInt(matcherForAddPattern.group(9));
+//            byte[] picture = matcherForAddPattern.group(11).getBytes();
+//            Pet pet = new Pet(type,nickName,breed,sex,age,picture);
+//            petService.createPet(pet);
+//            sendMessage(chatId,"Животное добавлено в БД");
+//        }
 
         switch (update.message().text()) {
             case "/start":

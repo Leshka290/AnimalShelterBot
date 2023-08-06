@@ -26,12 +26,11 @@ public class Pet {
     @JoinColumn(name = "adopter_id")
     private Adopter adopterId;
 
-    public Pet(PetType petType, String nickName, String breed, Sex sex, Integer age, byte[] picture) {
+    public Pet(PetType petType, String nickName, String breed, Sex sex, Integer age) {
         this.petType = petType;
         this.nickName = nickName;
         this.breed = breed;
         this.sex = sex;
         this.age = age;
-        this.picture = picture;
     }
 }
