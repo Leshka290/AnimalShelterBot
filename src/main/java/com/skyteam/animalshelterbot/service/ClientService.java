@@ -6,7 +6,6 @@ import com.skyteam.animalshelterbot.model.CatClient;
 import com.skyteam.animalshelterbot.model.DogClient;
 import com.skyteam.animalshelterbot.repository.CatClientRepository;
 import com.skyteam.animalshelterbot.repository.DogClientRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
