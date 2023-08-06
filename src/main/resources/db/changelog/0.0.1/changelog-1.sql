@@ -60,6 +60,7 @@ CREATE TABLE pets
     id          BIGINT PRIMARY KEY,
     nick_name   VARCHAR,
     pet_type    INT,
+    breed   VARCHAR,
     sex         INT,
     picture     BYTEA
 );
