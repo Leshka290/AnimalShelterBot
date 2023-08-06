@@ -1,5 +1,6 @@
 package com.skyteam.animalshelterbot.model;
 
+
 import com.skyteam.animalshelterbot.listener.constants.PetType;
 import com.skyteam.animalshelterbot.listener.constants.Sex;
 import lombok.*;
@@ -22,5 +23,4 @@ public class Pet {
     @ManyToOne
     @JoinColumn(name = "adopter_id")
     private Adopter adopterId;
-
 }
