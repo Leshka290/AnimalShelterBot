@@ -20,11 +20,14 @@ import static com.skyteam.animalshelterbot.listener.constants.PetType.DOG;
 public class ClientService {
 
 
-    @Autowired
-    private CatClientRepository catClientRepository;
+    private final CatClientRepository catClientRepository;
 
-    @Autowired
-    private DogClientRepository dogClientRepository;
+    private final DogClientRepository dogClientRepository;
+
+    public ClientService(CatClientRepository catClientRepository, DogClientRepository dogClientRepository) {
+        this.catClientRepository = catClientRepository;
+        this.dogClientRepository = dogClientRepository;
+    }
 
     /**
      * Записывает дынные клиента в БД после выбора им приюта, из которого он хочет взять животное.
