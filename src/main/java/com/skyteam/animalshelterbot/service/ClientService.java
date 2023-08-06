@@ -1,5 +1,6 @@
 package com.skyteam.animalshelterbot.service;
 
+import com.skyteam.animalshelterbot.exception.ClientNotFoundException;
 import com.skyteam.animalshelterbot.listener.constants.PetType;
 import com.skyteam.animalshelterbot.model.CatClient;
 import com.skyteam.animalshelterbot.model.DogClient;
@@ -63,7 +64,7 @@ public class ClientService {
             DogClient dogClient = new DogClient(name, lastName, phoneNumber, chatId);
             dogClientRepository.save(dogClient);
         } else {
-            throw new RuntimeException("Сначала нужно выбрать животное");
+            throw new ClientNotFoundException("Сначала нужно выбрать животное");
         }
     }
 }
