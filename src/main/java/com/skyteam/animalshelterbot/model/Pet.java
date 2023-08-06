@@ -1,30 +1,38 @@
 package com.skyteam.animalshelterbot.model;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import com.skyteam.animalshelterbot.listener.constants.PetType;
+import com.skyteam.animalshelterbot.listener.constants.Sex;
+import lombok.*;
 
-@Entity(name = "pets")
+import javax.persistence.*;
+
+@Entity
+@Table(name = "pets")
 @Data
 @NoArgsConstructor
 public class Pet {
+
     @Id
     @GeneratedValue
     private Long id;
-    private String type;
-    private String gender;
-    private String name;
+    private String nickName;
+    private PetType petType;
     private String breed;
-    private Integer age;
+    private Sex sex;
+    private int age;
+    private byte[] picture;
 
-    public Pet(String type, String gender, String name, String breed, Integer age) {
-        this.type = type;
-        this.gender = gender;
-        this.name = name;
+    @ManyToOne
+    @JoinColumn(name = "adopter_id")
+    private Adopter adopterId;
+
+    public Pet(String nickName, PetType petType, String breed, Sex sex, int age, byte[] picture) {
+        this.nickName = nickName;
+        this.petType = petType;
         this.breed = breed;
+        this.sex = sex;
         this.age = age;
+        this.picture = picture;
     }
 }

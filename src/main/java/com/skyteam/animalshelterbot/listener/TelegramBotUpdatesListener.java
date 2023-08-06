@@ -11,6 +11,7 @@ import com.pengrad.telegrambot.model.request.ReplyKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.SendResponse;
 import com.skyteam.animalshelterbot.listener.constants.PetType;
+import com.skyteam.animalshelterbot.listener.constants.Sex;
 import com.skyteam.animalshelterbot.model.Client;
 import com.skyteam.animalshelterbot.model.Pet;
 import com.skyteam.animalshelterbot.repository.ClientRepository;
@@ -122,12 +123,13 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         }
 
         if (matcherForAddPattern.matches()) {
-            String type = matcherForAddPattern.group(1);
-            String gender = matcherForAddPattern.group(3);
-            String name = matcherForAddPattern.group(5);
+            PetType type = PetType.valueOf(matcherForAddPattern.group(1));
+            String nickName = matcherForAddPattern.group(3);
+            Sex sex = Sex.valueOf(matcherForAddPattern.group(5));
             String breed = matcherForAddPattern.group(7);
-            Integer age = Integer.valueOf(matcherForAddPattern.group(9));
-            Pet pet = new Pet(type, gender, name, breed, age);
+            int age = Integer.parseInt(matcherForAddPattern.group(9));
+            byte[] picture = matcherForAddPattern.group(11).getBytes();
+            Pet pet = new Pet(nickName, type, breed, sex, age, picture);
             petService.createPet(pet);
             sendMessage(chatId,"Животное добавлено в БД");
         }
