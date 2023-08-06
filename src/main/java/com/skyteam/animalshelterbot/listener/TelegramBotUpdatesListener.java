@@ -14,8 +14,9 @@ import com.skyteam.animalshelterbot.listener.constants.PetType;
 import com.skyteam.animalshelterbot.listener.constants.Sex;
 import com.skyteam.animalshelterbot.model.Client;
 import com.skyteam.animalshelterbot.model.Pet;
+import com.skyteam.animalshelterbot.model.QuestionsForVolunteer;
 import com.skyteam.animalshelterbot.repository.ClientRepository;
-import com.skyteam.animalshelterbot.repository.PetRepository;
+import com.skyteam.animalshelterbot.repository.QuestionsForVolunteerRepository;
 import com.skyteam.animalshelterbot.service.ClientService;
 import com.skyteam.animalshelterbot.service.PetService;
 import org.slf4j.Logger;
@@ -51,21 +52,21 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private final ClientService clientService;
     private final ClientRepository clientRepository;
     private final PetService petService;
-    private final PetRepository petRepository;
+    private final QuestionsForVolunteerRepository questionsForVolunteerRepository;
 
 
-    public TelegramBotUpdatesListener(ClientRepository clientRepository, ClientService clientService, PetService petService, PetRepository petRepository) {
+    public TelegramBotUpdatesListener(ClientRepository clientRepository, ClientService clientService, PetService petService, QuestionsForVolunteerRepository questionsForVolunteerRepository) {
         this.clientService = clientService;
         this.clientRepository = clientRepository;
         this.petService = petService;
-        this.petRepository = petRepository;
+        this.questionsForVolunteerRepository = questionsForVolunteerRepository;
     }
 
     /**
      * Регулярное выражение для распознавания вводимых пользователем данных и сохранением их в БД.
      */
     private final String regex = "([A-Z][a-z]+) ([A-Z][a-z]+) (\\d{3}-\\d{3}-\\d{4})";
-    private final String regexForAddPet = "([a-zA-Z]{3})(\\s)([a-zA-Z]{4,6})(\\s)([a-zA-Z]+)(\\s)([a-zA-Z]+)(\\s)(\\d{1,2})";
+    private final String regexForAddPet = "([a-zA-Z]{3})(\\s)([a-zA-Z]{4,6})(\\s)([a-zA-Z]+)(\\s)([a-zA-Z]+)(\\s)(\\d{1,2})(\\s)(\\w+)";
 
     private final Pattern pattern = Pattern.compile(regex);
     private final Pattern patternForAddPet = Pattern.compile(regexForAddPet);
@@ -113,9 +114,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      */
     private void processMessage(Update update) {
 
-        if (update.message().text() == null) {
-            return;
-        }
         String messageText = update.message().text();
         long chatId = update.message().chat().id();
         Matcher matcher = pattern.matcher(messageText);
@@ -130,18 +128,17 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
         if (matcherForAddPattern.matches()) {
             PetType type = PetType.valueOf(matcherForAddPattern.group(1));
-            String nickName = matcherForAddPattern.group(3);
-            Sex sex = Sex.valueOf(matcherForAddPattern.group(5));
+            String nickName = matcherForAddPattern.group(5);
+            Sex sex = Sex.valueOf(matcherForAddPattern.group(3));
             String breed = matcherForAddPattern.group(7);
-            int age = Integer.parseInt(matcherForAddPattern.group(9));
+            Integer age = Integer.parseInt(matcherForAddPattern.group(9));
             byte[] picture = matcherForAddPattern.group(11).getBytes();
-            Pet pet = new Pet(nickName, type, breed, sex, age, picture);
-            petRepository.save(pet);
+            Pet pet = new Pet(type,nickName,breed,sex,age,picture);
             petService.createPet(pet);
             sendMessage(chatId,"Животное добавлено в БД");
         }
 
-        switch (messageText) {
+        switch (update.message().text()) {
             case "/start":
             case BUTTON_MAIN_MENU:
                 processStartCommand(update);
@@ -153,6 +150,10 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             case BUTTON_CANCEL:
                 cancelShareContact(update);
                 break;
+            default:
+                questionsForVolunteerRepository.save(new QuestionsForVolunteer(update.message().text(), chatId));
+                sendMessage(chatId,"Ваш вопрос передан волонтеру. Он свяжется с Вами в ближайшее время.");
+
         }
     }
 

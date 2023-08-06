@@ -36,10 +36,8 @@ public class Volunteer {
      * Идентификатор чата
      */
     private Long chatId;
-    /**
-     * Идентификатор приюта
-     */
-    private Long shelterId;
-
-
+//    /**
+//     * Идентификатор приюта
+//     */
+//    private Long shelterId;
 }

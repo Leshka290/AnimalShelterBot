@@ -10,26 +10,25 @@ import javax.persistence.*;
 @Entity
 @Table(name = "pets")
 @Data
-@NoArgsConstructor
 public class Pet {
 
     @Id
     @GeneratedValue
     private Long id;
-    private String nickName;
     private PetType petType;
+    private String nickName;
     private String breed;
     private Sex sex;
-    private int age;
+    private Integer age;
     private byte[] picture;
 
     @ManyToOne
     @JoinColumn(name = "adopter_id")
     private Adopter adopterId;
 
-    public Pet(String nickName, PetType petType, String breed, Sex sex, int age, byte[] picture) {
-        this.nickName = nickName;
+    public Pet(PetType petType, String nickName, String breed, Sex sex, Integer age, byte[] picture) {
         this.petType = petType;
+        this.nickName = nickName;
         this.breed = breed;
         this.sex = sex;
         this.age = age;
