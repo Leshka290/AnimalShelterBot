@@ -40,6 +40,10 @@ public class Volunteer {
      * Идентификатор приюта
      */
     private Long shelterId;
+    /**
+     * Занятость волонтера
+     */
+    private boolean isFree;
 
 
 }
