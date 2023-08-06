@@ -15,6 +15,7 @@ import com.skyteam.animalshelterbot.listener.constants.Sex;
 import com.skyteam.animalshelterbot.model.Client;
 import com.skyteam.animalshelterbot.model.Pet;
 import com.skyteam.animalshelterbot.repository.ClientRepository;
+import com.skyteam.animalshelterbot.repository.PetRepository;
 import com.skyteam.animalshelterbot.service.ClientService;
 import com.skyteam.animalshelterbot.service.PetService;
 import org.slf4j.Logger;
@@ -50,12 +51,14 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private final ClientService clientService;
     private final ClientRepository clientRepository;
     private final PetService petService;
+    private final PetRepository petRepository;
 
 
-    public TelegramBotUpdatesListener(ClientRepository clientRepository, ClientService clientService, PetService petService) {
+    public TelegramBotUpdatesListener(ClientRepository clientRepository, ClientService clientService, PetService petService, PetRepository petRepository) {
         this.clientService = clientService;
         this.clientRepository = clientRepository;
         this.petService = petService;
+        this.petRepository = petRepository;
     }
 
     /**
@@ -110,6 +113,9 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      */
     private void processMessage(Update update) {
 
+        if (update.message().text() == null) {
+            return;
+        }
         String messageText = update.message().text();
         long chatId = update.message().chat().id();
         Matcher matcher = pattern.matcher(messageText);
@@ -130,11 +136,12 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             int age = Integer.parseInt(matcherForAddPattern.group(9));
             byte[] picture = matcherForAddPattern.group(11).getBytes();
             Pet pet = new Pet(nickName, type, breed, sex, age, picture);
+            petRepository.save(pet);
             petService.createPet(pet);
             sendMessage(chatId,"Животное добавлено в БД");
         }
 
-        switch (update.message().text()) {
+        switch (messageText) {
             case "/start":
             case BUTTON_MAIN_MENU:
                 processStartCommand(update);

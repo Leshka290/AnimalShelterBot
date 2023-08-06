@@ -4,6 +4,7 @@ import com.skyteam.animalshelterbot.listener.constants.AdopterStatus;
 import lombok.Data;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import java.util.Collection;
@@ -21,6 +22,7 @@ import java.util.Collection;
 public class Adopter {
 
     @Id
+    @GeneratedValue
     private Long id;
     private Long chatId;
     private String firstName;
