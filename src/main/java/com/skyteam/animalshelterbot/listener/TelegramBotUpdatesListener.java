@@ -11,9 +11,7 @@ import com.pengrad.telegrambot.model.request.ReplyKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.SendResponse;
 import com.skyteam.animalshelterbot.listener.constants.PetType;
-import com.skyteam.animalshelterbot.listener.constants.Sex;
 import com.skyteam.animalshelterbot.model.Client;
-import com.skyteam.animalshelterbot.model.Pet;
 import com.skyteam.animalshelterbot.model.QuestionsForVolunteer;
 import com.skyteam.animalshelterbot.repository.ClientRepository;
 import com.skyteam.animalshelterbot.repository.QuestionsForVolunteerRepository;
@@ -21,7 +19,9 @@ import com.skyteam.animalshelterbot.service.ClientService;
 import com.skyteam.animalshelterbot.service.PetService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -44,6 +44,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      */
     private final Logger logger = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
 
+    @Autowired
     private final TelegramBot telegramBot = new TelegramBot("BOT_TOKEN");
 
     private PetType petType;
@@ -74,7 +75,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      * Подключение файла пропертис с сообщениями
      */
     private final ResourceBundle messagesBundle = ResourceBundle.getBundle("bot_messages");
-
 
 
     @PostConstruct
@@ -111,6 +111,10 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      * Функционал телеграм-бота, отвечающий отправку сообщений пользователям.
      */
     private void processMessage(Update update) {
+
+        if (update.message().contact() != null) {
+            return;
+        }
 
         String messageText = update.message().text();
         long chatId = update.message().chat().id();
@@ -150,7 +154,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                 break;
             default:
                 questionsForVolunteerRepository.save(new QuestionsForVolunteer(update.message().text(), chatId));
-                sendMessage(chatId,"Ваш вопрос передан волонтеру. Он свяжется с Вами в ближайшее время.");
+                sendMessage(chatId, "MESSAGE_AFTER_YOUR_QUESTION");
 
         }
     }
@@ -176,7 +180,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     sendButtonClickMessage(chatId, BUTTON_WELCOME_INFO_CAT_SHELTER);
                     processInfoPetClick(chatId, update);
                     break;
-                case BUTTON_SUBMIT_PET_REPORT_CALLBACK :
+                case BUTTON_SUBMIT_PET_REPORT_CALLBACK:
                     sendButtonClickMessage(chatId, BUTTON_SUBMIT_PET_REPORT);
                     processAdoptClick(chatId);
                     break;

@@ -1,7 +1,6 @@
 package com.skyteam.animalshelterbot.controller;
 
 import com.skyteam.animalshelterbot.model.Pet;
-import com.skyteam.animalshelterbot.repository.PetRepository;
 import com.skyteam.animalshelterbot.service.PetService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.PostMapping;
