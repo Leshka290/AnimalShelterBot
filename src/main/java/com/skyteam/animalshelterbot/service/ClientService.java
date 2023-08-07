@@ -1,11 +1,11 @@
 package com.skyteam.animalshelterbot.service;
 
+import com.skyteam.animalshelterbot.exception.ClientNotFoundException;
 import com.skyteam.animalshelterbot.listener.constants.PetType;
 import com.skyteam.animalshelterbot.model.CatClient;
 import com.skyteam.animalshelterbot.model.DogClient;
 import com.skyteam.animalshelterbot.repository.CatClientRepository;
 import com.skyteam.animalshelterbot.repository.DogClientRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
@@ -20,11 +20,14 @@ import static com.skyteam.animalshelterbot.listener.constants.PetType.DOG;
 public class ClientService {
 
 
-    @Autowired
-    private CatClientRepository catClientRepository;
+    private final CatClientRepository catClientRepository;
 
-    @Autowired
-    private DogClientRepository dogClientRepository;
+    private final DogClientRepository dogClientRepository;
+
+    public ClientService(CatClientRepository catClientRepository, DogClientRepository dogClientRepository) {
+        this.catClientRepository = catClientRepository;
+        this.dogClientRepository = dogClientRepository;
+    }
 
     /**
      * Записывает дынные клиента в БД после выбора им приюта, из которого он хочет взять животное.
@@ -60,7 +63,7 @@ public class ClientService {
             DogClient dogClient = new DogClient(name, lastName, phoneNumber, chatId);
             dogClientRepository.save(dogClient);
         } else {
-            throw new RuntimeException("Сначала нужно выбрать животное");
+            throw new ClientNotFoundException("Сначала нужно выбрать животное");
         }
     }
 }

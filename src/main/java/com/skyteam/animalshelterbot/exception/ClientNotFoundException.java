@@ -1,4 +1,4 @@
-package com.skyteam.animalshelterbot.exeptions;
+package com.skyteam.animalshelterbot.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -6,6 +6,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class ClientNotFoundException extends RuntimeException {
-
-    private final Long id;
+    public ClientNotFoundException(String message) {
+        super(message);
+    }
 }

@@ -1,4 +1,4 @@
-package com.skyteam.animalshelterbot.exeptions;
+package com.skyteam.animalshelterbot.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
