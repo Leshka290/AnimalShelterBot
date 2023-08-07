@@ -1,6 +1,7 @@
 package com.skyteam.animalshelterbot.model;
 
 import com.skyteam.animalshelterbot.listener.constants.AdopterStatus;
+import com.skyteam.animalshelterbot.listener.constants.PetType;
 import lombok.Data;
 
 import javax.persistence.Entity;
@@ -33,6 +34,7 @@ public class Adopter {
     private String phoneNumber;
 
     private Long volunteerId;
+    private PetType petType;
 
     private AdopterStatus status;
 
