@@ -7,22 +7,51 @@ import lombok.*;
 
 import javax.persistence.*;
 
+/**
+ * Класс описывающий сущность животного со свойствами:
+ * <p>
+ * <b>id</b>,<b>petType</b>,<b>nickName</b>,<b>breed</b>,<b>sex</b>,<b>age</b>,<b>picture</b>,<b>adopterId</b>
+ * <p>
+ * @author leshka290
+ */
 @Entity
 @Table(name = "pets")
 @Data
 @NoArgsConstructor
 public class Pet {
-
+    /**
+     * Идентификатор в БД
+     */
     @Id
     @GeneratedValue
     private Long id;
+    /**
+     * Тип животного
+     */
     private PetType petType;
+    /**
+     * Имя животного
+     */
     private String nickName;
+    /**
+     * Порода животного
+     */
     private String breed;
+    /**
+     * Пол животного
+     */
     private Sex sex;
+    /**
+     * Возраст животного
+     */
     private Integer age;
+    /**
+     * Фото животного
+     */
     private byte[] picture;
-
+    /**
+     * Идентификатор усыновителя животного
+     */
     @ManyToOne
     @JoinColumn(name = "adopter_id")
     private Adopter adopterId;

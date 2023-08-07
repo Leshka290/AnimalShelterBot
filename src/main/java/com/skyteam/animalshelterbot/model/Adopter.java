@@ -25,17 +25,47 @@ public class Adopter {
     @Id
     @GeneratedValue
     private Long id;
+
+    /**
+     * Идентификатор чата
+     */
     private Long chatId;
+    /**
+     * Имя усыновителя
+     */
     private String firstName;
+    /**
+     * Фамилия усыновителя
+     */
     private String lastName;
+    /**
+     * Имя пользователя усыновителя
+     */
     private String userName;
+    /**
+     * Номер паспорта усыновителя
+     */
     private String passport;
+    /**
+     * Возраст усыновителя
+     */
     private int age;
+    /**
+     * Телефонный номер усыновителя
+     */
     private String phoneNumber;
 
+    /**
+     * Id волонтера, взаимодействующего с усыновителем
+     */
     private Long volunteerId;
+    /**
+     * Тип животного усыновителя
+     */
     private PetType petType;
-
+    /**
+     * Стадии усыновления
+     */
     private AdopterStatus status;
 
     @OneToMany(mappedBy = "adopterId")
