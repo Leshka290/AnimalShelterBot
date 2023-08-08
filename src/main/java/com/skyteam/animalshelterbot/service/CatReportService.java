@@ -13,9 +13,11 @@ import java.util.List;
 @Service
 public class CatReportService {
     private final CatReportRepository catReportsRepository;
+    private final CatImageRepository catImageRepository;
 
-    public CatReportService(CatReportRepository catReportsRepository, CatImageRepository catImageRepository) {
+    public CatReportService(CatReportRepository catReportsRepository, CatImageRepository catImageRepository, CatImageRepository catImageRepository1) {
         this.catReportsRepository = catReportsRepository;
+        this.catImageRepository = catImageRepository1;
     }
 
     public CatReport postReport(CatReport catReport, MultipartFile... multipartFiles) {
