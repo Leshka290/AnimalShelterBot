@@ -12,8 +12,8 @@ public class PetService {
         this.petRepository = petRepository;
     }
 
-    public void createPet(Pet pet) {
-        petRepository.save(pet);
+    public Pet createPet(Pet pet) {
+        return petRepository.save(pet);
     }
 
     public Pet findPet(Long id) {
