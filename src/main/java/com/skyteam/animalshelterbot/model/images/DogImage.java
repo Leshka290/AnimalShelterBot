@@ -3,6 +3,9 @@ import javax.persistence.*;
 
 import com.skyteam.animalshelterbot.model.Report.DogReport;
 import lombok.*;
+/**
+ * Класс описывающий фото собаки для отчета
+ */
 @Entity
 @Table(schema = "images", name = "dog_images")
 @Getter
