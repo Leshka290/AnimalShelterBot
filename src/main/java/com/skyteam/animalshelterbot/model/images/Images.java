@@ -13,6 +13,7 @@ import lombok.*;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
+@MappedSuperclass
 public abstract class Images {
     /**
      * Id файла
