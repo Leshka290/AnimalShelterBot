@@ -9,7 +9,7 @@ import lombok.*;
  * Класс описывающий фото кота для отчета
  */
 @Entity
-@Table(schema = "images", name = "cat_images")
+@Table(name = "cat_images")
 @Getter
 @Setter
 @Builder
