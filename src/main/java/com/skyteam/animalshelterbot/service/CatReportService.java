@@ -7,7 +7,6 @@ import com.skyteam.animalshelterbot.repository.CatReportRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import com.skyteam.animalshelterbot.model.*;
 
 import java.util.List;
 @Service
@@ -15,9 +14,9 @@ public class CatReportService {
     private final CatReportRepository catReportsRepository;
     private final CatImageRepository catImageRepository;
 
-    public CatReportService(CatReportRepository catReportsRepository, CatImageRepository catImageRepository, CatImageRepository catImageRepository1) {
+    public CatReportService(CatReportRepository catReportsRepository, CatImageRepository catImageRepository) {
         this.catReportsRepository = catReportsRepository;
-        this.catImageRepository = catImageRepository1;
+        this.catImageRepository = catImageRepository;
     }
 
     public CatReport postReport(CatReport catReport, MultipartFile... multipartFiles) {
@@ -37,8 +36,8 @@ public class CatReportService {
     }
 
 
-    public HttpStatus deleteReportsByPet(Pet pet) {
-        catReportsRepository.deleteCatReportsByCat(pet);
+    public HttpStatus deleteReportsByPet(Long id) {
+        catReportsRepository.deleteCatReportsByCatId(id);
         return HttpStatus.OK;
     }
 
@@ -48,7 +47,7 @@ public class CatReportService {
     }
 
 
-    public List<CatReport> findReportsFromPet(Pet pet) {
-        return catReportsRepository.findCatReportsByCat(pet);
+    public List<CatReport> findReportsFromPet(Long id) {
+        return catReportsRepository.findCatReportsByPetId(id);
     }
 }

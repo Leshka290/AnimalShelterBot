@@ -45,18 +45,18 @@ public class ReportController<N extends Report, T extends Pet> {
     @GetMapping
     public ResponseEntity<List<? extends Report>> findReportsByPet(@RequestBody T pet) {
         if (pet.getPetType().equals(PetType.CAT)) {
-            return ResponseEntity.ok(catReportService.findReportsFromPet(pet));
+            return ResponseEntity.ok(catReportService.findReportsFromPet(pet.getId()));
         } else if (pet.getPetType().equals(PetType.DOG)) {
-            return ResponseEntity.ok(dogReportService.findReportsFromPet(pet));
+            return ResponseEntity.ok(dogReportService.findReportsFromPet(pet.getId()));
         } else throw new RuntimeException("Не валидно");
     }
 
     @DeleteMapping
     public ResponseEntity<HttpStatus> deleteReportsByPet(T pet) {
         if (pet.getPetType().equals(PetType.CAT)) {
-            return ResponseEntity.ok(catReportService.deleteReportsByPet(pet));
+            return ResponseEntity.ok(catReportService.deleteReportsByPet(pet.getId()));
         } else if (pet.getPetType().equals(PetType.DOG)) {
-            return ResponseEntity.ok(dogReportService.deleteReportsByPet(pet));
+            return ResponseEntity.ok(dogReportService.deleteReportsByPet(pet.getId()));
         }
         return ResponseEntity.ok(HttpStatus.OK);
     }
