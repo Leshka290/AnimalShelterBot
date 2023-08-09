@@ -3,7 +3,7 @@ package com.skyteam.animalshelterbot.service;
 import com.skyteam.animalshelterbot.model.Report.DogReport;
 import com.skyteam.animalshelterbot.model.images.DogImage;
 import com.skyteam.animalshelterbot.repository.DogImageRepository;
-import com.skyteam.animalshelterbot.repository.DogReportsRepository;
+import com.skyteam.animalshelterbot.repository.DogReportRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -11,10 +11,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 @Service
 public class DogReportService {
-  private final   DogReportsRepository dogReportsRepository;
+  private final DogReportRepository dogReportsRepository;
   private final DogImageRepository dogImageRepository;
 
-    public DogReportService(DogReportsRepository dogReportsRepository, DogImageRepository dogImageRepository) {
+    public DogReportService(DogReportRepository dogReportsRepository, DogImageRepository dogImageRepository) {
         this.dogReportsRepository = dogReportsRepository;
         this.dogImageRepository = dogImageRepository;
     }
