@@ -6,7 +6,7 @@ import javax.persistence.*;
 import java.util.List;
 
     @Entity
-    @Table(schema = "reports", name = "dog_reports")
+    @Table( name = "dog_reports")
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder

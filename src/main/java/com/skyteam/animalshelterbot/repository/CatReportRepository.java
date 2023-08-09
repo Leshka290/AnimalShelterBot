@@ -9,9 +9,9 @@ import java.util.List;
 
 @Repository
 public interface CatReportRepository  extends JpaRepository<CatReport, Long> {
-    List<CatReport> findCatReportsByClient(Long id);
+    List<CatReport> findCatReportsByCatClientId(Long id);
 
     List<CatReport> findCatReportsByPetId(Long id);
 
-    void deleteCatReportsByCatId(Long id);
+    void deleteCatReportsByPetId(Long id);
 }

@@ -37,7 +37,7 @@ public class CatReportService {
 
 
     public HttpStatus deleteReportsByPet(Long id) {
-        catReportsRepository.deleteCatReportsByCatId(id);
+        catReportsRepository.deleteCatReportsByPetId(id);
         return HttpStatus.OK;
     }
 
