@@ -9,6 +9,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+
+/**
+ * Реализует CRUD операции с отчетами о кошках.
+ */
 @Service
 public class CatReportService {
     private final CatReportRepository catReportsRepository;
@@ -19,6 +23,12 @@ public class CatReportService {
         this.catImageRepository = catImageRepository;
     }
 
+    /**
+     * Добавление отчета о кошке
+     * @param catReport отчет о кошке
+     * @param multipartFiles фото кошки
+     * @return отчет о кошке
+     */
     public CatReport postReport(CatReport catReport, MultipartFile... multipartFiles) {
         List<CatImage> images = null;
         if (multipartFiles.length > 0) {
@@ -30,23 +40,37 @@ public class CatReportService {
     }
 
 
-
+    /**
+     * Редактирование отчета о кошке
+     * @param catReport отчет о кошке
+     * @return отчет о кошке
+     */
     public CatReport putReport(CatReport catReport) {
         return catReportsRepository.save(catReport);
     }
-
-
+    /**
+     * Удаление отчета о кошке
+     * @param id идентификатор отчета
+     * @return статус ок
+     */
     public HttpStatus deleteReportsByPet(Long id) {
         catReportsRepository.deleteCatReportsByPetId(id);
         return HttpStatus.OK;
     }
 
-
+    /**
+     * Найти все отчеты о кошках
+     * @return коллеция отчетов
+     */
     public List<CatReport> getAllReports() {
         return catReportsRepository.findAll();
     }
 
-
+    /**
+     * Найти отчет по животному
+     * @param id идентификатор животного
+     * @return коллекция отчетов
+     */
     public List<CatReport> findReportsFromPet(Long id) {
         return catReportsRepository.findCatReportsByPetId(id);
     }

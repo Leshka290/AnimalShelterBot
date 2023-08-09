@@ -1,6 +1,5 @@
 package com.skyteam.animalshelterbot.controller;
 
-import com.skyteam.animalshelterbot.model.Adopter;
 import com.skyteam.animalshelterbot.model.Pet;
 import com.skyteam.animalshelterbot.service.PetService;
 import io.swagger.v3.oas.annotations.Operation;
