@@ -5,6 +5,7 @@ import com.skyteam.animalshelterbot.model.*;
 import com.skyteam.animalshelterbot.model.images.CatImage;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
     @Entity
@@ -30,4 +31,8 @@ import java.util.List;
 
         @OneToMany(targetEntity = CatImage.class, mappedBy = "catReport", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
         private List<CatImage> images;
+
+        public CatReport(Adopter adopterId, LocalDate date, String diet, String commonDescriptionOfStatus, String behavioralChanges) {
+            super(adopterId, date, diet, commonDescriptionOfStatus, behavioralChanges);
+        }
 }

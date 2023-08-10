@@ -4,9 +4,18 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
-@AllArgsConstructor
 public class VolunteerNotFoundException extends RuntimeException {
-    public VolunteerNotFoundException(String description) {
-        super(description);
+    private long id;
+
+    public VolunteerNotFoundException() {
+        super();
+    }
+
+    public VolunteerNotFoundException(String message) {
+        super(message);
+    }
+
+    public VolunteerNotFoundException(long id) {
+        this.id = id;
     }
 }

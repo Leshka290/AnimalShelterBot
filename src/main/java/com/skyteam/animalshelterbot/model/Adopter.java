@@ -2,6 +2,7 @@ package com.skyteam.animalshelterbot.model;
 
 import com.skyteam.animalshelterbot.listener.constants.AdopterStatus;
 import com.skyteam.animalshelterbot.listener.constants.PetType;
+import com.skyteam.animalshelterbot.listener.constants.ReportStatus;
 import lombok.Data;
 
 import javax.persistence.Entity;
@@ -68,6 +69,24 @@ public class Adopter {
      */
     private AdopterStatus status;
 
+    /**
+     * Стадии отправки отчета
+     */
+    private ReportStatus reportStatus;
+
     @OneToMany(mappedBy = "adopterId")
     private Collection<Pet> pets;
+
+    public Adopter(String firstName, String lastName, String username, String phoneNumber, long chatId, PetType peteType) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.userName = username;
+        this.chatId = chatId;
+        this.phoneNumber = phoneNumber;
+        this.petType = peteType;
+    }
+
+    public Adopter() {
+
+    }
 }

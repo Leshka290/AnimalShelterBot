@@ -1,8 +1,10 @@
 package com.skyteam.animalshelterbot.model.Report;
+import com.skyteam.animalshelterbot.model.Adopter;
 import com.skyteam.animalshelterbot.model.DogClient;
 import com.skyteam.animalshelterbot.model.images.DogImage;
 import lombok.*;
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.util.List;
 
     @Entity
@@ -29,4 +31,8 @@ import java.util.List;
         @OneToMany(targetEntity = DogImage.class, mappedBy = "dogReport", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
         @ToString.Exclude
         private List<DogImage> images;
-}
+
+        public DogReport(Adopter adopterId, LocalDate date, String diet, String commonDescriptionOfStatus, String behavioralChanges) {
+            super(adopterId, date, diet, commonDescriptionOfStatus, behavioralChanges);
+        }
+    }
