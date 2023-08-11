@@ -4,6 +4,7 @@ import com.skyteam.animalshelterbot.listener.constants.AdopterStatus;
 import com.skyteam.animalshelterbot.listener.constants.PetType;
 import com.skyteam.animalshelterbot.listener.constants.ReportStatus;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -21,7 +22,24 @@ import java.util.Collection;
  */
 @Entity
 @Data
+@NoArgsConstructor
 public class Adopter {
+
+    public Adopter(Long chatId, String firstName, String lastName, String userName, String passport, int age, String phoneNumber, Long volunteerId, PetType petType, AdopterStatus status, Collection<Pet> pets) {
+        this.chatId = chatId;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.userName = userName;
+        this.passport = passport;
+        this.age = age;
+        this.phoneNumber = phoneNumber;
+        this.volunteerId = volunteerId;
+        this.petType = petType;
+        this.status = status;
+        this.pets = pets;
+    }
+
+
 
     @Id
     @GeneratedValue
@@ -84,9 +102,5 @@ public class Adopter {
         this.chatId = chatId;
         this.phoneNumber = phoneNumber;
         this.petType = peteType;
-    }
-
-    public Adopter() {
-
     }
 }

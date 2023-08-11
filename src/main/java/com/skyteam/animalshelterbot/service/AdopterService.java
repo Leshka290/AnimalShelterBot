@@ -13,11 +13,9 @@ import org.springframework.stereotype.Service;
 public class AdopterService {
 
     private final AdopterRepository adopterRepository;
-    private final ClientRepository clientRepository;
 
     public AdopterService(AdopterRepository adopterRepository, ClientRepository clientRepository) {
         this.adopterRepository = adopterRepository;
-        this.clientRepository = clientRepository;
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.skyteam.animalshelterbot.service;
 
+import com.skyteam.animalshelterbot.exception.ClientNotFoundException;
 import com.skyteam.animalshelterbot.listener.constants.PetType;
 import com.skyteam.animalshelterbot.model.CatClient;
 import com.skyteam.animalshelterbot.model.DogClient;
@@ -16,7 +17,7 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @ContextConfiguration(classes = ClientService.class)
-public class ClientServiceTest {
+public class ClientServiceTests {
 
     @MockBean
     private CatClientRepository catClientRepository;
@@ -77,7 +78,7 @@ public class ClientServiceTest {
         long phoneNumber = 987654321L;
         when(catClientRepository.existsById(chatId)).thenReturn(false);
         when(dogClientRepository.existsById(chatId)).thenReturn(false);
-        assertThrows(RuntimeException.class, () -> clientService.saveClientsInfo(name, lastName, phoneNumber, chatId));
+        assertThrows(ClientNotFoundException.class, () -> clientService.saveClientsInfo(name, lastName, phoneNumber, chatId));
         verify(catClientRepository, never()).save(any(CatClient.class));
         verify(dogClientRepository, never()).save(any(DogClient.class));
     }

@@ -79,7 +79,7 @@ public class VolunteerService {
      * Найти всех волонтеров
      * @return коллекция волонтеров
      */
-    public List<Volunteer> gatAllVolunteers() {
+    public List<Volunteer> getAllVolunteers() {
         return volunteerRepository.findAll();
     }
 }

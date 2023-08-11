@@ -4,7 +4,6 @@ import com.skyteam.animalshelterbot.model.Pet;
 import com.skyteam.animalshelterbot.repository.PetRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -14,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 @SpringBootTest
 @ContextConfiguration(classes = PetService.class)
-public class PetServiceTest {
+public class PetServiceTests {
 
     @MockBean
     private PetRepository petRepository;

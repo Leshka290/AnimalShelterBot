@@ -66,16 +66,12 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private final TelegramBot telegramBot = new TelegramBot("BOT_TOKEN");
 
     private PetType petType;
-    private ReportStatus reportStatus;
     private final ClientService clientService;
-    private final PetService petService;
     private final VolunteerService volunteerService;
-    private final QuestionsForVolunteerRepository questionsForVolunteerRepository;
     private final ClientRepository clientRepository;
     private final AdopterRepository adopterRepository;
     private final CatReportRepository catReportRepository;
     private final DogReportRepository dogReportRepository;
-    private final PetRepository petRepository;
     private final CatImageRepository catImageRepository;
     private final DogImageRepository dogImageRepository;
     private final AdopterService adopterService;
@@ -87,14 +83,11 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                                       PetRepository petRepository, CatImageRepository catImageRepository,
                                       DogImageRepository dogImageRepository, AdopterService adopterService) {
         this.clientService = clientService;
-        this.petService = petService;
         this.volunteerService = volunteerService;
-        this.questionsForVolunteerRepository = questionsForVolunteerRepository;
         this.clientRepository = clientRepository;
         this.adopterRepository = adopterRepository;
         this.catReportRepository = catReportRepository;
         this.dogReportRepository = dogReportRepository;
-        this.petRepository = petRepository;
         this.catImageRepository = catImageRepository;
         this.dogImageRepository = dogImageRepository;
         this.adopterService = adopterService;
@@ -172,7 +165,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             clientService.saveClientsInfo(name, lastName, phoneNumber, chatId);
         }
 
-        reportStatus = adopterService.getUpdateStatus(chatId);
+        ReportStatus reportStatus = adopterService.getUpdateStatus(chatId);
         if (reportStatus == WAITING_FOR_PET_PICTURE) {
             saveAdoptionReportPhoto(update);
             adopterService.setUpdateStatus(chatId, WAITING_FOR_PET_DIET);

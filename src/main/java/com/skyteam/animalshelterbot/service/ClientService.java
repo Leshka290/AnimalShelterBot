@@ -58,7 +58,6 @@ public class ClientService {
         if (catClientRepository.existsById(chatId)) {
             CatClient catClient = new CatClient(name, lastName, phoneNumber, chatId);
             catClientRepository.save(catClient);
-            //existsByChatId
         } else if (dogClientRepository.existsById(chatId)) {
             DogClient dogClient = new DogClient(name, lastName, phoneNumber, chatId);
             dogClientRepository.save(dogClient);

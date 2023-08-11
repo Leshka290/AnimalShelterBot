@@ -15,11 +15,9 @@ import java.util.List;
 @Service
 public class DogReportService {
   private final DogReportRepository dogReportsRepository;
-  private final DogImageRepository dogImageRepository;
 
     public DogReportService(DogReportRepository dogReportsRepository, DogImageRepository dogImageRepository) {
         this.dogReportsRepository = dogReportsRepository;
-        this.dogImageRepository = dogImageRepository;
     }
 
     /**
