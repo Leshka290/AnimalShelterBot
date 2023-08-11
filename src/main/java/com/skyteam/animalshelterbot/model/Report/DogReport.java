@@ -32,7 +32,7 @@ import java.util.List;
         @ToString.Exclude
         private List<DogImage> images;
 
-        public DogReport(Adopter adopterId, LocalDate date, String diet, String commonDescriptionOfStatus, String behavioralChanges) {
-            super(adopterId, date, diet, commonDescriptionOfStatus, behavioralChanges);
+        public DogReport(LocalDate date, String diet, String commonDescriptionOfStatus, String behavioralChanges) {
+            super(date, diet, commonDescriptionOfStatus, behavioralChanges);
         }
     }

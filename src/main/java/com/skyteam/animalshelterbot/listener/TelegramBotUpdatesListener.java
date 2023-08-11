@@ -637,7 +637,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             DogReport adoptionReport = dogReportRepository.findAdoptionReportByAdopterId(adopterId);
 
             if (adoptionReport == null) {
-                adoptionReport = new DogReport(adopterId, date, null, null, null);
+                adoptionReport = new DogReport(date, null, null, null);
                 dogReportRepository.save((DogReport) adoptionReport);
                 SendMessage requestPhotoMessage = new SendMessage(chatId, messagesBundle.getString("PHOTO_WAITING_MESSAGE"));
                 requestPhotoMessage.replyMarkup(createButtonsReport());
@@ -651,7 +651,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             CatReport adoptionReport = catReportRepository.findAdoptionReportByAdopterId(adopterId);
 
             if (adoptionReport == null) {
-                adoptionReport = new CatReport(adopterId, date, null, null, null);
+                adoptionReport = new CatReport(date, null, null, null);
                 catReportRepository.save((CatReport) adoptionReport);
                 SendMessage requestPhotoMessage = new SendMessage(chatId, messagesBundle.getString("PHOTO_WAITING_MESSAGE"));
                 requestPhotoMessage.replyMarkup(createButtonsReport());

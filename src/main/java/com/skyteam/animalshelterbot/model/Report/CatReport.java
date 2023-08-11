@@ -32,7 +32,7 @@ import java.util.List;
         @OneToMany(targetEntity = CatImage.class, mappedBy = "catReport", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
         private List<CatImage> images;
 
-        public CatReport(Adopter adopterId, LocalDate date, String diet, String commonDescriptionOfStatus, String behavioralChanges) {
-            super(adopterId, date, diet, commonDescriptionOfStatus, behavioralChanges);
+        public CatReport( LocalDate date, String diet, String commonDescriptionOfStatus, String behavioralChanges) {
+            super(date, diet, commonDescriptionOfStatus, behavioralChanges);
         }
 }

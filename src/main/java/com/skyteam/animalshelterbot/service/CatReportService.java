@@ -21,21 +21,6 @@ public class CatReportService {
         this.catReportsRepository = catReportsRepository;
     }
 
-    /**
-     * Добавление отчета о кошке
-     * @param catReport отчет о кошке
-     * @param multipartFiles фото кошки
-     * @return отчет о кошке
-     */
-    public CatReport postReport(CatReport catReport, MultipartFile... multipartFiles) {
-        List<CatImage> images = null;
-        if (multipartFiles.length > 0) {
-
-        }
-        catReport.setImages(images);
-        catReportsRepository.save(catReport);
-        return catReportsRepository.save(catReport);
-    }
 
 
     /**

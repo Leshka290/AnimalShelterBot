@@ -20,21 +20,7 @@ public class DogReportService {
         this.dogReportsRepository = dogReportsRepository;
     }
 
-    /**
-     * Добавление отчета о собаке
-     * @param dogReport отчет о собаке
-     * @param multipartFiles фото собаки
-     * @return отчет о собаке
-     */
-    public DogReport postReport(DogReport dogReport, MultipartFile... multipartFiles) {
-        List<DogImage> images = null;
-        if (multipartFiles.length > 0) {
 
-        }
-        dogReport.setImages(images);
-        dogReportsRepository.save(dogReport);
-        return dogReportsRepository.save(dogReport);
-    }
 
 
     /**

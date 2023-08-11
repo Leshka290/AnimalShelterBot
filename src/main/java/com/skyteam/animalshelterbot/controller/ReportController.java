@@ -36,55 +36,6 @@ public class ReportController<N extends Report, T extends Pet> {
         this.catReportService = catReportService;
     }
 
-    @PostMapping("/dogs")
-    @Operation(
-            summary = "Добавить отчёт о собаке",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "отчет о собаке добавлен",
-                            content = {
-                                    @Content(
-                                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                                            schema = @Schema(implementation = DogReport.class)
-                                    )
-                            }
-                    ),
-                    @ApiResponse(
-                            responseCode = "400",
-                            description = "Если отчет уже добавлен"
-                    )
-            }
-    )
-
-    public ResponseEntity<DogReport> postDogReport(@RequestBody DogReport dogReport,
-                                                   @RequestParam("images") MultipartFile... multipartFiles) {
-        return ResponseEntity.ok(dogReportService.postReport(dogReport, multipartFiles));
-    }
-
-    @PostMapping("/cats")
-    @Operation(
-            summary = "Добавить отчёт о кошке",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "отчет о кошке добавлен",
-                            content = {
-                                    @Content(
-                                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                                            schema = @Schema(implementation = CatReport.class)
-                                    )
-                            }
-                    ),
-                    @ApiResponse(
-                            responseCode = "400",
-                            description = "Если отчет уже добавлен"
-                    )
-            }
-    )
-    public ResponseEntity<CatReport> postCatReport(@RequestBody CatReport catReport) {
-        return ResponseEntity.ok(catReportService.postReport(catReport));
-    }
 
     @GetMapping
     @Operation(

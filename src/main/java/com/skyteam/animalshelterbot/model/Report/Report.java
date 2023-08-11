@@ -37,8 +37,7 @@ public abstract class Report {
     @Column(name = "checked_by_volunteer")
     private boolean checkedByVolunteer;
 
-    public Report(Adopter adopterId, LocalDate date, String diet, String commonDescriptionOfStatus, String behavioralChanges) {
-        this.adopterId = adopterId;
+    public Report(LocalDate date, String diet, String commonDescriptionOfStatus, String behavioralChanges) {
         this.date = date;
         this.diet = diet;
         this.commonDescriptionOfStatus = commonDescriptionOfStatus;
