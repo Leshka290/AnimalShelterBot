@@ -17,20 +17,9 @@ import com.pengrad.telegrambot.response.SendResponse;
 import com.skyteam.animalshelterbot.exception.ClientNotFoundException;
 import com.skyteam.animalshelterbot.listener.constants.PetType;
 import com.skyteam.animalshelterbot.listener.constants.ReportStatus;
-import com.skyteam.animalshelterbot.model.Adopter;
-import com.skyteam.animalshelterbot.model.Client;
-import com.skyteam.animalshelterbot.model.QuestionsForVolunteer;
-import com.skyteam.animalshelterbot.model.Report.CatReport;
-import com.skyteam.animalshelterbot.model.Report.DogReport;
-import com.skyteam.animalshelterbot.model.Report.Report;
-import com.skyteam.animalshelterbot.model.Volunteer;
-import com.skyteam.animalshelterbot.model.images.CatImage;
-import com.skyteam.animalshelterbot.model.images.DogImage;
+import com.skyteam.animalshelterbot.model.*;
 import com.skyteam.animalshelterbot.repository.*;
-import com.skyteam.animalshelterbot.service.AdopterService;
-import com.skyteam.animalshelterbot.service.ClientService;
-import com.skyteam.animalshelterbot.service.PetService;
-import com.skyteam.animalshelterbot.service.VolunteerService;
+import com.skyteam.animalshelterbot.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,25 +59,25 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private final VolunteerService volunteerService;
     private final ClientRepository clientRepository;
     private final AdopterRepository adopterRepository;
-    private final CatReportRepository catReportRepository;
-    private final DogReportRepository dogReportRepository;
-    private final CatImageRepository catImageRepository;
-    private final DogImageRepository dogImageRepository;
+    private final ReportRepository reportRepository;
+    private final ReportService reportService;
+    private final ImageRepository imageRepository;
+    private final ImageRepository dogImageRepository;
     private final AdopterService adopterService;
 
     public TelegramBotUpdatesListener(ClientService clientService, PetService petService, VolunteerService volunteerService,
                                       QuestionsForVolunteerRepository questionsForVolunteerRepository,
                                       ClientRepository clientRepository, AdopterRepository adopterRepository,
-                                      CatReportRepository catReportRepository, DogReportRepository dogReportRepository,
-                                      PetRepository petRepository, CatImageRepository catImageRepository,
-                                      DogImageRepository dogImageRepository, AdopterService adopterService) {
+                                      ReportRepository reportRepository,
+                                      PetRepository petRepository, ReportService reportService, ImageRepository imageRepository,
+                                      ImageRepository dogImageRepository, AdopterService adopterService) {
         this.clientService = clientService;
         this.volunteerService = volunteerService;
         this.clientRepository = clientRepository;
         this.adopterRepository = adopterRepository;
-        this.catReportRepository = catReportRepository;
-        this.dogReportRepository = dogReportRepository;
-        this.catImageRepository = catImageRepository;
+        this.reportRepository = reportRepository;
+        this.reportService = reportService;
+        this.imageRepository = imageRepository;
         this.dogImageRepository = dogImageRepository;
         this.adopterService = adopterService;
     }
@@ -633,34 +622,20 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         Adopter adopterId = adopterRepository.findByChatId(chatId);
         LocalDate date = LocalDate.now();
 
-        if (adopterId.getPetType().equals(DOG)) {
-            DogReport adoptionReport = dogReportRepository.findAdoptionReportByAdopterId(adopterId);
+        Report adoptionReport = reportRepository.findReportsByAdopterId(adopterId);
 
-            if (adoptionReport == null) {
-                adoptionReport = new DogReport(adopterId, date, null, null, null);
-                dogReportRepository.save((DogReport) adoptionReport);
-                SendMessage requestPhotoMessage = new SendMessage(chatId, messagesBundle.getString("PHOTO_WAITING_MESSAGE"));
-                requestPhotoMessage.replyMarkup(createButtonsReport());
-                sendMessage(requestPhotoMessage);
-            } else {
-                SendMessage message = new SendMessage(chatId, messagesBundle.getString("ADOPTION_REPORT_ALREADY_EXIST"));
-                sendMessage(message);
-            }
+        if (adoptionReport == null) {
+            adoptionReport = new Report(adopterId, date, null, null, null);
+            reportRepository.save(adoptionReport);
+            SendMessage requestPhotoMessage = new SendMessage(chatId, messagesBundle.getString("PHOTO_WAITING_MESSAGE"));
+            requestPhotoMessage.replyMarkup(createButtonsReport());
+            sendMessage(requestPhotoMessage);
+        } else {
+            SendMessage message = new SendMessage(chatId, messagesBundle.getString("ADOPTION_REPORT_ALREADY_EXIST"));
+            sendMessage(message);
         }
-        if (adopterId.getPetType().equals(CAT)) {
-            CatReport adoptionReport = catReportRepository.findAdoptionReportByAdopterId(adopterId);
 
-            if (adoptionReport == null) {
-                adoptionReport = new CatReport(adopterId, date, null, null, null);
-                catReportRepository.save((CatReport) adoptionReport);
-                SendMessage requestPhotoMessage = new SendMessage(chatId, messagesBundle.getString("PHOTO_WAITING_MESSAGE"));
-                requestPhotoMessage.replyMarkup(createButtonsReport());
-                sendMessage(requestPhotoMessage);
-            } else {
-                SendMessage message = new SendMessage(chatId, messagesBundle.getString("ADOPTION_REPORT_ALREADY_EXIST"));
-                sendMessage(message);
-            }
-        }
+
     }
 
     /**
@@ -670,30 +645,19 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         long chatId = update.message().chat().id();
         Adopter adopter = adopterRepository.findByChatId(chatId);
 //        Report adoptionReport;
-        if (adopter.getPetType().equals(CAT)) {
-           CatReport adoptionReport = catReportRepository.findAdoptionReportByAdopterId(adopter);
 
-            if (update.message().photo() != null) {
-                byte[] image = getPhoto(update);
-                CatImage images = new CatImage(image);
-                catImageRepository.save(images);
-                catReportRepository.save((CatReport) adoptionReport);
-                SendMessage savePhotoMessage = new SendMessage(chatId, messagesBundle.getString("PHOTO_SAVED_MESSAGE"));
-                sendMessage(savePhotoMessage);
-            }
-        } else if (adopter.getPetType().equals(DOG)) {
-            DogReport adoptionReport = dogReportRepository.findAdoptionReportByAdopterId(adopter);
+        Report adoptionReport = reportRepository.findReportsByAdopterId(adopter);
 
-            if (update.message().photo() != null) {
-                byte[] image = getPhoto(update);
-                DogImage images = new DogImage(image);
-                dogImageRepository.save(images);
-                dogReportRepository.save((DogReport) adoptionReport);
-                SendMessage savePhotoMessage = new SendMessage(chatId, messagesBundle.getString("PHOTO_SAVED_MESSAGE"));
-                sendMessage(savePhotoMessage);
-            }
+        if (update.message().photo() != null) {
+            byte[] image = getPhoto(update);
+            Image images = new Image(image);
+            imageRepository.save(images);
+            reportRepository.save(adoptionReport);
+            SendMessage savePhotoMessage = new SendMessage(chatId, messagesBundle.getString("PHOTO_SAVED_MESSAGE"));
+            sendMessage(savePhotoMessage);
         }
     }
+
 
     /**
      * Метод для получения фото
@@ -727,28 +691,18 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         Adopter adopter = adopterRepository.findByChatId(chatId);
 
 //        Report adoptionReport;
-        if (adopter.getPetType().equals(CAT)) {
-            CatReport adoptionReport = catReportRepository.findAdoptionReportByAdopterId(adopter);
-            String diet = adoptionReport.getDiet();
-            if (diet == null) {
-                String newDiet = update.message().text();
-                adoptionReport.setDiet(newDiet);
-                catReportRepository.save((CatReport) adoptionReport);
-                SendMessage saveDietMessage = new SendMessage(chatId, messagesBundle.getString("DIET_SAVED"));
-                sendMessage(saveDietMessage);
-            }
-        } else if (adopter.getPetType().equals(DOG)) {
-           DogReport adoptionReport = dogReportRepository.findAdoptionReportByAdopterId(adopter);
-            String diet = adoptionReport.getDiet();
-            if (diet == null) {
-                String newDiet = update.message().text();
-                adoptionReport.setDiet(newDiet);
-                dogReportRepository.save((DogReport) adoptionReport);
-                SendMessage saveDietMessage = new SendMessage(chatId, messagesBundle.getString("DIET_SAVED"));
-                sendMessage(saveDietMessage);
-            }
+        Report adoptionReport = reportRepository.findReportsByAdopterId(adopter);
+        String diet = adoptionReport.getDiet();
+        if (diet == null) {
+            String newDiet = update.message().text();
+            adoptionReport.setDiet(newDiet);
+            reportRepository.save(adoptionReport);
+            SendMessage saveDietMessage = new SendMessage(chatId, messagesBundle.getString("DIET_SAVED"));
+            sendMessage(saveDietMessage);
         }
+
     }
+
 
     /**
      * Метод для сохранения отчета об изменениях в поведении
@@ -757,28 +711,18 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         long chatId = update.message().chat().id();
         Adopter adopter = adopterRepository.findByChatId(chatId);
 //        Report adoptionReport;
-        if (adopter.getPetType().equals(CAT)) {
-           CatReport adoptionReport = catReportRepository.findAdoptionReportByAdopterId(adopter);
-            String behaviorChane = adoptionReport.getBehavioralChanges();
-            if (behaviorChane == null) {
-                String newBehaviorChane = update.message().text();
-                adoptionReport.setBehavioralChanges(newBehaviorChane);
-                catReportRepository.save((CatReport) adoptionReport);
-                SendMessage saveBehaviorChangeMessage = new SendMessage(chatId, messagesBundle.getString("BEHAVIOR_CHANGE_SAVED"));
-                sendMessage(saveBehaviorChangeMessage);
-            }
-        } else if(adopter.getPetType().equals(DOG)) {
-            DogReport adoptionReport = dogReportRepository.findAdoptionReportByAdopterId(adopter);
-            String behaviorChane = adoptionReport.getBehavioralChanges();
-            if (behaviorChane == null) {
-                String newBehaviorChane = update.message().text();
-                adoptionReport.setBehavioralChanges(newBehaviorChane);
-                dogReportRepository.save((DogReport) adoptionReport);
-                SendMessage saveBehaviorChangeMessage = new SendMessage(chatId, messagesBundle.getString("BEHAVIOR_CHANGE_SAVED"));
-                sendMessage(saveBehaviorChangeMessage);
-            }
+
+        Report adoptionReport = reportRepository.findReportsByAdopterId(adopter);
+        String behaviorChane = adoptionReport.getBehavioralChanges();
+        if (behaviorChane == null) {
+            String newBehaviorChane = update.message().text();
+            adoptionReport.setBehavioralChanges(newBehaviorChane);
+            reportRepository.save(adoptionReport);
+            SendMessage saveBehaviorChangeMessage = new SendMessage(chatId, messagesBundle.getString("BEHAVIOR_CHANGE_SAVED"));
+            sendMessage(saveBehaviorChangeMessage);
         }
     }
+
 
     /**
      * Метод для получения отчета о здоровье питомца
@@ -787,28 +731,16 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         long chatId = update.message().chat().id();
         Adopter adopter = adopterRepository.findByChatId(chatId);
 
-        if (adopter.getPetType().equals(CAT)) {
-            CatReport adoptionReport = catReportRepository.findAdoptionReportByAdopterId(adopter);
-            String wellBeing = adoptionReport.getCommonDescriptionOfStatus();
-            if (wellBeing == null) {
-                String newWellBeing = update.message().text();
-                adoptionReport.setCommonDescriptionOfStatus(newWellBeing);
-                catReportRepository.save((CatReport) adoptionReport);
-                SendMessage saveWellBeingMessage = new SendMessage(chatId, messagesBundle.getString("WELL_BEING_SAVED"));
-                sendMessage(saveWellBeingMessage);
-            }
-        } else if (adopter.getPetType().equals(DOG)) {
-            DogReport adoptionReport = dogReportRepository.findAdoptionReportByAdopterId(adopter);
-            String wellBeing = adoptionReport.getCommonDescriptionOfStatus();
-            if (wellBeing == null) {
-                String newWellBeing = update.message().text();
-                adoptionReport.setCommonDescriptionOfStatus(newWellBeing);
-                dogReportRepository.save((DogReport) adoptionReport);
-                SendMessage saveWellBeingMessage = new SendMessage(chatId, messagesBundle.getString("WELL_BEING_SAVED"));
-                sendMessage(saveWellBeingMessage);
-
-            }
+        Report adoptionReport = reportRepository.findReportsByAdopterId(adopter);
+        String wellBeing = adoptionReport.getCommonDescriptionOfStatus();
+        if (wellBeing == null) {
+            String newWellBeing = update.message().text();
+            adoptionReport.setCommonDescriptionOfStatus(newWellBeing);
+            reportRepository.save(adoptionReport);
+            SendMessage saveWellBeingMessage = new SendMessage(chatId, messagesBundle.getString("WELL_BEING_SAVED"));
+            sendMessage(saveWellBeingMessage);
         }
+
     }
 
     /**

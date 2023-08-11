@@ -1,19 +1,23 @@
-package com.skyteam.animalshelterbot.model.Report;
+package com.skyteam.animalshelterbot.model;
 
-import com.skyteam.animalshelterbot.model.Adopter;
 import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
 @Getter
 @Setter
 @ToString
-@MappedSuperclass
-public abstract class Report {
+@Entity
+public class Report {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "report_id")
+    private Long id;
 
     @Column(name = "date")
     private LocalDate date;
@@ -37,6 +41,10 @@ public abstract class Report {
     @Column(name = "checked_by_volunteer")
     private boolean checkedByVolunteer;
 
+    //@Column(name = "image")
+    @OneToMany(mappedBy = "report")
+    private List<Image> image;
+
     public Report(Adopter adopterId, LocalDate date, String diet, String commonDescriptionOfStatus, String behavioralChanges) {
         this.adopterId = adopterId;
         this.date = date;
@@ -44,6 +52,7 @@ public abstract class Report {
         this.commonDescriptionOfStatus = commonDescriptionOfStatus;
         this.behavioralChanges = behavioralChanges;
     }
+
     @PrePersist
     private void init() {
         date = LocalDateTime.now().toLocalDate();

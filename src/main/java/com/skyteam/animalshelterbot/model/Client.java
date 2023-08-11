@@ -24,15 +24,24 @@ public class Client {
     @Id
     @GeneratedValue
     private Long id;
+
     /**
      * Имя клиента
      */
     private String firstName;
-
+    /**
+     * Фамилия клиента
+     */
+    private String lastName;
+    /**
+     * Телефонный номер клиента
+     */
+    private Long phoneNumber;
     /**
      * Идентификатор чата
      */
     private Long chatId;
+
     /**
      * Последний выбор приюта
      */
@@ -42,5 +51,12 @@ public class Client {
     public Client(Long chatId, PetType lastPetType) {
         this.chatId = chatId;
         this.lastPetType = lastPetType;
+    }
+
+    public Client(String firstName, String lastName, long phoneNumber, long chatId) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.phoneNumber = phoneNumber;
+        this.chatId = chatId;
     }
 }

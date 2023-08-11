@@ -2,10 +2,6 @@ package com.skyteam.animalshelterbot.service;
 
 import com.skyteam.animalshelterbot.exception.ClientNotFoundException;
 import com.skyteam.animalshelterbot.listener.constants.PetType;
-import com.skyteam.animalshelterbot.model.CatClient;
-import com.skyteam.animalshelterbot.model.DogClient;
-import com.skyteam.animalshelterbot.repository.CatClientRepository;
-import com.skyteam.animalshelterbot.repository.DogClientRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
