@@ -24,4 +24,8 @@ public class CatImage extends Images{
     @ManyToOne
     @JoinColumn(name = "report_id")
     private DogReport catReport;
+
+    public CatImage(byte[] image) {
+        super(image);
+    }
 }

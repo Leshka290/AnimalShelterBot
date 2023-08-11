@@ -4,9 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
-@AllArgsConstructor
 public class ClientNotFoundException extends RuntimeException {
+
+    private long id;
     public ClientNotFoundException(String message) {
         super(message);
+    }
+    public ClientNotFoundException(long id) {
+        this.id = id;
     }
 }

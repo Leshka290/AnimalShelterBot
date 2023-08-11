@@ -3,26 +3,43 @@ package com.skyteam.animalshelterbot.listener;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.CallbackQuery;
+import com.pengrad.telegrambot.model.File;
+import com.pengrad.telegrambot.model.PhotoSize;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.model.request.KeyboardButton;
 import com.pengrad.telegrambot.model.request.ReplyKeyboardMarkup;
+import com.pengrad.telegrambot.request.GetFile;
 import com.pengrad.telegrambot.request.SendMessage;
+import com.pengrad.telegrambot.response.GetFileResponse;
 import com.pengrad.telegrambot.response.SendResponse;
+import com.skyteam.animalshelterbot.exception.ClientNotFoundException;
 import com.skyteam.animalshelterbot.listener.constants.PetType;
+import com.skyteam.animalshelterbot.listener.constants.ReportStatus;
+import com.skyteam.animalshelterbot.model.Adopter;
 import com.skyteam.animalshelterbot.model.Client;
 import com.skyteam.animalshelterbot.model.QuestionsForVolunteer;
-import com.skyteam.animalshelterbot.repository.ClientRepository;
-import com.skyteam.animalshelterbot.repository.QuestionsForVolunteerRepository;
+import com.skyteam.animalshelterbot.model.Report.CatReport;
+import com.skyteam.animalshelterbot.model.Report.DogReport;
+import com.skyteam.animalshelterbot.model.Report.Report;
+import com.skyteam.animalshelterbot.model.Volunteer;
+import com.skyteam.animalshelterbot.model.images.CatImage;
+import com.skyteam.animalshelterbot.model.images.DogImage;
+import com.skyteam.animalshelterbot.repository.*;
+import com.skyteam.animalshelterbot.service.AdopterService;
 import com.skyteam.animalshelterbot.service.ClientService;
 import com.skyteam.animalshelterbot.service.PetService;
+import com.skyteam.animalshelterbot.service.VolunteerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.regex.Matcher;
@@ -31,6 +48,7 @@ import java.util.regex.Pattern;
 import static com.skyteam.animalshelterbot.listener.constants.ConstantsButtons.*;
 import static com.skyteam.animalshelterbot.listener.constants.PetType.CAT;
 import static com.skyteam.animalshelterbot.listener.constants.PetType.DOG;
+import static com.skyteam.animalshelterbot.listener.constants.ReportStatus.*;
 
 /**
  * Реализует функционал телеграм-бота.
@@ -48,17 +66,38 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private final TelegramBot telegramBot = new TelegramBot("BOT_TOKEN");
 
     private PetType petType;
+    private ReportStatus reportStatus;
     private final ClientService clientService;
-    private final ClientRepository clientRepository;
     private final PetService petService;
+    private final VolunteerService volunteerService;
     private final QuestionsForVolunteerRepository questionsForVolunteerRepository;
+    private final ClientRepository clientRepository;
+    private final AdopterRepository adopterRepository;
+    private final CatReportRepository catReportRepository;
+    private final DogReportRepository dogReportRepository;
+    private final PetRepository petRepository;
+    private final CatImageRepository catImageRepository;
+    private final DogImageRepository dogImageRepository;
+    private final AdopterService adopterService;
 
-
-    public TelegramBotUpdatesListener(ClientRepository clientRepository, ClientService clientService, PetService petService, QuestionsForVolunteerRepository questionsForVolunteerRepository) {
+    public TelegramBotUpdatesListener(ClientService clientService, PetService petService, VolunteerService volunteerService,
+                                      QuestionsForVolunteerRepository questionsForVolunteerRepository,
+                                      ClientRepository clientRepository, AdopterRepository adopterRepository,
+                                      CatReportRepository catReportRepository, DogReportRepository dogReportRepository,
+                                      PetRepository petRepository, CatImageRepository catImageRepository,
+                                      DogImageRepository dogImageRepository, AdopterService adopterService) {
         this.clientService = clientService;
-        this.clientRepository = clientRepository;
         this.petService = petService;
+        this.volunteerService = volunteerService;
         this.questionsForVolunteerRepository = questionsForVolunteerRepository;
+        this.clientRepository = clientRepository;
+        this.adopterRepository = adopterRepository;
+        this.catReportRepository = catReportRepository;
+        this.dogReportRepository = dogReportRepository;
+        this.petRepository = petRepository;
+        this.catImageRepository = catImageRepository;
+        this.dogImageRepository = dogImageRepository;
+        this.adopterService = adopterService;
     }
 
     /**
@@ -113,6 +152,11 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private void processMessage(Update update) {
 
         if (update.message().contact() != null) {
+            saveAdopter(update);
+            return;
+        }
+
+        if (update.message().text() == null) {
             return;
         }
 
@@ -128,6 +172,28 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             clientService.saveClientsInfo(name, lastName, phoneNumber, chatId);
         }
 
+        reportStatus = adopterService.getUpdateStatus(chatId);
+        if (reportStatus == WAITING_FOR_PET_PICTURE) {
+            saveAdoptionReportPhoto(update);
+            adopterService.setUpdateStatus(chatId, WAITING_FOR_PET_DIET);
+            return;
+        }
+        if (reportStatus == WAITING_FOR_PET_DIET) {
+            saveAdoptionReportDiet(update);
+            adopterService.setUpdateStatus(chatId, WAITING_FOR_WELL_BEING);
+            return;
+        }
+        if (reportStatus == WAITING_FOR_WELL_BEING) {
+            saveAdoptionReportWellBeing(update);
+            adopterService.setUpdateStatus(chatId, WAITING_FOR_BEHAVIOR_CHANGE);
+            return;
+        }
+        if (reportStatus == WAITING_FOR_BEHAVIOR_CHANGE) {
+            saveAdoptionReportBehaviorChange(update);
+            adopterService.setUpdateStatus(chatId, DEFAULT);
+            return;
+        }
+
 //        if (matcherForAddPattern.matches()) {
 //            PetType type = PetType.valueOf(matcherForAddPattern.group(1));
 //            String nickName = matcherForAddPattern.group(5);
@@ -140,6 +206,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 //            sendMessage(chatId,"Животное добавлено в БД");
 //        }
 
+
         switch (update.message().text()) {
             case "/start":
 
@@ -147,15 +214,15 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                 processStartCommand(update);
                 break;
             case BUTTON_CALL_VOLUNTEER:
-                // Позвать волонтеру
-//                callVolunteer(update);
+                // Позвать волонтера
+                callVolunteer(update);
                 break;
             case BUTTON_CANCEL:
                 cancelShareContact(update);
                 break;
-            default:
-                questionsForVolunteerRepository.save(new QuestionsForVolunteer(update.message().text(), chatId));
-                sendMessage(chatId, messagesBundle.getString( "MESSAGE_AFTER_YOUR_QUESTION"));
+//            default:
+//                questionsForVolunteerRepository.save(new QuestionsForVolunteer(update.message().text(), chatId));
+//                sendMessage(chatId, messagesBundle.getString("MESSAGE_AFTER_YOUR_QUESTION"));
 
         }
     }
@@ -194,83 +261,70 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     sendButtonClickMessage(chatId, messagesBundle.getString("BUTTON_SUBMIT_PET_REPORT"));
                     processAdoptClick(chatId);
                     break;
-                    //Шаблон отпарвки отчета
+                //Шаблон отпарвки отчета
                 case BUTTON_REPORT_TEMPLATE_CALLBACK:
                     SendMessage instructionMessage = new SendMessage(chatId, ADOPTION_REPORT_INSTRUCTION);
                     sendMessage(instructionMessage);
                     break;
-                    //Отправка отчета
+                //Отправка отчета
                 case BUTTON_SEND_REPORT_CALLBACK:
-//                    saveAdoptionReport(chatId);
+                    saveAdoptionReport(chatId);
                     break;
                 case BUTTON_SHARE_CONTACT_CALLBACK:
                     // Поделитесь своими контактными данными
-                    sendButtonClickMessage(chatId, messagesBundle.getString( "BUTTON_SHARE_CONTACT_DETAILS"));
+                    sendButtonClickMessage(chatId, messagesBundle.getString("BUTTON_SHARE_CONTACT_DETAILS"));
                     fillProfileMessage(chatId);
                     break;
                 case BUTTON_INFO_SHELTER_CALLBACK:
                     // Информация о приюте
                     sendButtonClickMessage(chatId, messagesBundle.getString("BUTTON_INFO_SHELTER"));
-//                    processGettingInformationAboutShelter(chatId);
                     break;
                 case BUTTON_INFO_SECURITY_CALLBACK:
                     // Получение контактов службы безопасности
-                    sendButtonClickMessage(chatId, messagesBundle.getString( "BUTTON_INFO_SECURITY"));
-//                    processGettingInformationAboutSecurity(chatId);
+                    sendButtonClickMessage(chatId, messagesBundle.getString("BUTTON_INFO_SECURITY"));
                     break;
                 case BUTTON_INFO_SAFETY_PRECAUTIONS_CALLBACK:
                     // Получение инструкций по технике безопасности
-                    sendButtonClickMessage(chatId,  messagesBundle.getString("BUTTON_INFO_SAFETY_PRECAUTIONS"));
-//                    processGettingInformationAboutSafetyPrecautions(chatId);
+                    sendButtonClickMessage(chatId, messagesBundle.getString("BUTTON_INFO_SAFETY_PRECAUTIONS"));
                     break;
                 case BUTTON_RULES_MEETING_ANIMAL_CALLBACK:
                     // Инструкция как познакомиться с животным в первый раз
                     sendButtonClickMessage(chatId, messagesBundle.getString("BUTTON_RULES_MEETING_ANIMAL"));
-//                    processInfoMeetingClick(chatId);
                     break;
                 case BUTTON_DOCS_FOR_ADOPTION_CALLBACK:
                     // Список необходимых документов
                     sendButtonClickMessage(chatId, messagesBundle.getString("BUTTON_DOCS_FOR_ADOPTION"));
-//                    processListOfDocsClick(chatId);
                     break;
                 case BUTTON_RECOMMENDATIONS_FOR_TRANSPORT_CALLBACK:
                     // Рекомендации по перевозке животных
                     sendButtonClickMessage(chatId, messagesBundle.getString("BUTTON_RECOMMENDATIONS_FOR_TRANSPORT"));
-//                    processTransportAnimal(chatId);
                     break;
                 case BUTTON_ARRANGEMENT_FOR_PET_CALLBACK:
                     //  Устройство для молодого в доме
                     sendButtonClickMessage(chatId, messagesBundle.getString("BUTTON_ARRANGEMENT_FOR_PET"));
-//                    processRecForLittle(chatId);
                     break;
                 case BUTTON_ARRANGEMENT_FOR_ADULT_CALLBACK:
                     // Устройство для пожилого животного в доме
                     sendButtonClickMessage(chatId, messagesBundle.getString("BUTTON_ARRANGEMENT_FOR_ADULT"));
-//                    processRecForAdult(chatId);
                     break;
                 case BUTTON_ADVICES_FOR_DISABLED_PET_CALLBACK:
                     // Советы, как быть с животными-инвалидами
                     sendButtonClickMessage(chatId, messagesBundle.getString("BUTTON_ADVICES_FOR_DISABLED_PET"));
-//                    processRecForDisable(chatId);
                     break;
                 case BUTTON_ADVICES_FROM_KINOLOG_CALLBACK:
                     // Советы от кинолога
                     sendButtonClickMessage(chatId, messagesBundle.getString("BUTTON_ADVICES_FROM_KINOLOG"));
-//                    processKinologAdvices(chatId);
                     break;
                 case BUTTON_RECOMMENDED_KINOLOGS_CALLBACK:
                     // Список рекомендуемых кинологов
                     sendButtonClickMessage(chatId, messagesBundle.getString("BUTTON_RECOMMENDED_KINOLOGS"));
-//                    processRecKinologs(chatId);
                     break;
                 case BUTTON_REASONS_FOR_REFUSAL_CALLBACK:
                     // Причины, по которым мы можем вам отказать
                     sendButtonClickMessage(chatId, messagesBundle.getString("BUTTON_REASONS_FOR_REFUSAL"));
-//                    processReasonsRefusal(chatId);
                     break;
                 case BUTTON_CANCEL_SEND_REPORT_CALLBACK:
                     // Отменить отправку отчета
-//                    cancelSendReport(chatId);
                     break;
             }
         }
@@ -395,6 +449,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
     /**
      * Общая информация о приюте (1)
+     *
      * @param chatId
      */
     private void processStartClick(long chatId) {
@@ -522,6 +577,245 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             client.setLastPetType(lastPetType);
         }
         clientRepository.save(client);
+    }
+
+    /**
+     * Метод сохранения усыновителя
+     */
+    private void saveAdopter(Update update) {
+        if (update.message().contact() != null) {
+            String firstName = update.message().contact().firstName();
+            String lastName = update.message().contact().lastName();
+            String username = update.message().chat().username();
+            String phone = update.message().contact().phoneNumber();
+            long chatId = update.message().chat().id();
+
+            Adopter adopter = adopterRepository.findByChatId(chatId);
+            if (adopter == null) {
+                Client client = clientRepository.findByChatId(chatId);
+                if (client == null) {
+                    throw new ClientNotFoundException(chatId);
+                }
+                adopter = new Adopter(firstName, lastName, username, phone, chatId, client.getLastPetType());
+                adopterRepository.save(adopter);
+                SendMessage message = new SendMessage(chatId, messagesBundle.getString("SAVE_ADOPTER_SUCCESS"));
+                sendMessage(message.replyMarkup(mainMenuKeyboardButtons()));
+            } else {
+                SendMessage message = new SendMessage(chatId, "ADOPTER_ALREADY_EXISTS");
+                sendMessage(message.replyMarkup(mainMenuKeyboardButtons()));
+            }
+        }
+    }
+
+    /**
+     * Метод вызова волонтера
+     */
+    private void callVolunteer(Update update) {
+        String userId = ""; // client chat_id or username
+        long chatId = 0; // volunteer's chat_id
+        userId += update.message().from().id();
+        logger.info("UserId = {}", userId);
+        Volunteer volunteer = volunteerService.findFreeVolunteer();
+        if (volunteer == null) {
+            chatId = Long.parseLong(userId);
+            SendMessage message = new SendMessage(chatId, messagesBundle.getString("NO_VOLUNTEERS_TEXT"));
+            sendMessage(message);
+        } else {
+            chatId = volunteer.getChatId();
+            if (update.message().from().username() != null) {
+                userId = "@" + update.message().from().username();
+                SendMessage message = new SendMessage(chatId, String.format(messagesBundle.getString("CONTACT_TELEGRAM_USER"), userId));
+                sendMessage(message);
+            } else {
+                SendMessage message = new SendMessage(chatId, String.format(messagesBundle.getString("CONTACT_TELEGRAM_ID"), userId));
+                sendMessage(message);
+            }
+        }
+    }
+
+    /**
+     * Метод сохранения отчета
+     */
+    private void saveAdoptionReport(long chatId) {
+        Adopter adopterId = adopterRepository.findByChatId(chatId);
+        LocalDate date = LocalDate.now();
+
+        if (adopterId.getPetType().equals(DOG)) {
+            DogReport adoptionReport = dogReportRepository.findAdoptionReportByAdopterId(adopterId);
+
+            if (adoptionReport == null) {
+                adoptionReport = new DogReport(adopterId, date, null, null, null);
+                dogReportRepository.save((DogReport) adoptionReport);
+                SendMessage requestPhotoMessage = new SendMessage(chatId, messagesBundle.getString("PHOTO_WAITING_MESSAGE"));
+                requestPhotoMessage.replyMarkup(createButtonsReport());
+                sendMessage(requestPhotoMessage);
+            } else {
+                SendMessage message = new SendMessage(chatId, messagesBundle.getString("ADOPTION_REPORT_ALREADY_EXIST"));
+                sendMessage(message);
+            }
+        }
+        if (adopterId.getPetType().equals(CAT)) {
+            CatReport adoptionReport = catReportRepository.findAdoptionReportByAdopterId(adopterId);
+
+            if (adoptionReport == null) {
+                adoptionReport = new CatReport(adopterId, date, null, null, null);
+                catReportRepository.save((CatReport) adoptionReport);
+                SendMessage requestPhotoMessage = new SendMessage(chatId, messagesBundle.getString("PHOTO_WAITING_MESSAGE"));
+                requestPhotoMessage.replyMarkup(createButtonsReport());
+                sendMessage(requestPhotoMessage);
+            } else {
+                SendMessage message = new SendMessage(chatId, messagesBundle.getString("ADOPTION_REPORT_ALREADY_EXIST"));
+                sendMessage(message);
+            }
+        }
+    }
+
+    /**
+     * Метод фото в отчет
+     */
+    private void saveAdoptionReportPhoto(Update update) {
+        long chatId = update.message().chat().id();
+        Adopter adopter = adopterRepository.findByChatId(chatId);
+//        Report adoptionReport;
+        if (adopter.getPetType().equals(CAT)) {
+           CatReport adoptionReport = catReportRepository.findAdoptionReportByAdopterId(adopter);
+
+            if (update.message().photo() != null) {
+                byte[] image = getPhoto(update);
+                CatImage images = new CatImage(image);
+                catImageRepository.save(images);
+                catReportRepository.save((CatReport) adoptionReport);
+                SendMessage savePhotoMessage = new SendMessage(chatId, messagesBundle.getString("PHOTO_SAVED_MESSAGE"));
+                sendMessage(savePhotoMessage);
+            }
+        } else if (adopter.getPetType().equals(DOG)) {
+            DogReport adoptionReport = dogReportRepository.findAdoptionReportByAdopterId(adopter);
+
+            if (update.message().photo() != null) {
+                byte[] image = getPhoto(update);
+                DogImage images = new DogImage(image);
+                dogImageRepository.save(images);
+                dogReportRepository.save((DogReport) adoptionReport);
+                SendMessage savePhotoMessage = new SendMessage(chatId, messagesBundle.getString("PHOTO_SAVED_MESSAGE"));
+                sendMessage(savePhotoMessage);
+            }
+        }
+    }
+
+    /**
+     * Метод для получения фото
+     */
+    public byte[] getPhoto(Update update) {
+        if (update.message().photo() != null) {
+            PhotoSize[] photoSizes = update.message().photo();
+            for (PhotoSize photoSize : photoSizes) {
+                GetFile getFile = new GetFile(photoSize.fileId());
+                GetFileResponse getFileResponse = telegramBot.execute(getFile);
+                if (getFileResponse.isOk()) {
+                    File file = getFileResponse.file();
+                    String extension = StringUtils.getFilenameExtension(file.filePath());
+                    try {
+                        byte[] image = telegramBot.getFileContent(file);
+                        return image;
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Метод для получения отчета о диете
+     */
+    private void saveAdoptionReportDiet(Update update) {
+        long chatId = update.message().chat().id();
+        Adopter adopter = adopterRepository.findByChatId(chatId);
+
+//        Report adoptionReport;
+        if (adopter.getPetType().equals(CAT)) {
+            CatReport adoptionReport = catReportRepository.findAdoptionReportByAdopterId(adopter);
+            String diet = adoptionReport.getDiet();
+            if (diet == null) {
+                String newDiet = update.message().text();
+                adoptionReport.setDiet(newDiet);
+                catReportRepository.save((CatReport) adoptionReport);
+                SendMessage saveDietMessage = new SendMessage(chatId, messagesBundle.getString("DIET_SAVED"));
+                sendMessage(saveDietMessage);
+            }
+        } else if (adopter.getPetType().equals(DOG)) {
+           DogReport adoptionReport = dogReportRepository.findAdoptionReportByAdopterId(adopter);
+            String diet = adoptionReport.getDiet();
+            if (diet == null) {
+                String newDiet = update.message().text();
+                adoptionReport.setDiet(newDiet);
+                dogReportRepository.save((DogReport) adoptionReport);
+                SendMessage saveDietMessage = new SendMessage(chatId, messagesBundle.getString("DIET_SAVED"));
+                sendMessage(saveDietMessage);
+            }
+        }
+    }
+
+    /**
+     * Метод для сохранения отчета об изменениях в поведении
+     */
+    private void saveAdoptionReportBehaviorChange(Update update) {
+        long chatId = update.message().chat().id();
+        Adopter adopter = adopterRepository.findByChatId(chatId);
+//        Report adoptionReport;
+        if (adopter.getPetType().equals(CAT)) {
+           CatReport adoptionReport = catReportRepository.findAdoptionReportByAdopterId(adopter);
+            String behaviorChane = adoptionReport.getBehavioralChanges();
+            if (behaviorChane == null) {
+                String newBehaviorChane = update.message().text();
+                adoptionReport.setBehavioralChanges(newBehaviorChane);
+                catReportRepository.save((CatReport) adoptionReport);
+                SendMessage saveBehaviorChangeMessage = new SendMessage(chatId, messagesBundle.getString("BEHAVIOR_CHANGE_SAVED"));
+                sendMessage(saveBehaviorChangeMessage);
+            }
+        } else if(adopter.getPetType().equals(DOG)) {
+            DogReport adoptionReport = dogReportRepository.findAdoptionReportByAdopterId(adopter);
+            String behaviorChane = adoptionReport.getBehavioralChanges();
+            if (behaviorChane == null) {
+                String newBehaviorChane = update.message().text();
+                adoptionReport.setBehavioralChanges(newBehaviorChane);
+                dogReportRepository.save((DogReport) adoptionReport);
+                SendMessage saveBehaviorChangeMessage = new SendMessage(chatId, messagesBundle.getString("BEHAVIOR_CHANGE_SAVED"));
+                sendMessage(saveBehaviorChangeMessage);
+            }
+        }
+    }
+
+    /**
+     * Метод для получения отчета о здоровье питомца
+     */
+    private void saveAdoptionReportWellBeing(Update update) {
+        long chatId = update.message().chat().id();
+        Adopter adopter = adopterRepository.findByChatId(chatId);
+
+        if (adopter.getPetType().equals(CAT)) {
+            CatReport adoptionReport = catReportRepository.findAdoptionReportByAdopterId(adopter);
+            String wellBeing = adoptionReport.getCommonDescriptionOfStatus();
+            if (wellBeing == null) {
+                String newWellBeing = update.message().text();
+                adoptionReport.setCommonDescriptionOfStatus(newWellBeing);
+                catReportRepository.save((CatReport) adoptionReport);
+                SendMessage saveWellBeingMessage = new SendMessage(chatId, messagesBundle.getString("WELL_BEING_SAVED"));
+                sendMessage(saveWellBeingMessage);
+            }
+        } else if (adopter.getPetType().equals(DOG)) {
+            DogReport adoptionReport = dogReportRepository.findAdoptionReportByAdopterId(adopter);
+            String wellBeing = adoptionReport.getCommonDescriptionOfStatus();
+            if (wellBeing == null) {
+                String newWellBeing = update.message().text();
+                adoptionReport.setCommonDescriptionOfStatus(newWellBeing);
+                dogReportRepository.save((DogReport) adoptionReport);
+                SendMessage saveWellBeingMessage = new SendMessage(chatId, messagesBundle.getString("WELL_BEING_SAVED"));
+                sendMessage(saveWellBeingMessage);
+
+            }
+        }
     }
 
     /**

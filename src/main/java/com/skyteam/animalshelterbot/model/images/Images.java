@@ -34,4 +34,7 @@ public abstract class Images {
 
     private boolean isPreview;
 
+    public Images(byte[] fileAsArrayOfBytes) {
+        this.fileAsArrayOfBytes = fileAsArrayOfBytes;
+    }
 }
