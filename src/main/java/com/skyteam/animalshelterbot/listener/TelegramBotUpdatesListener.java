@@ -3,43 +3,21 @@ package com.skyteam.animalshelterbot.listener;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.CallbackQuery;
-import com.pengrad.telegrambot.model.File;
-import com.pengrad.telegrambot.model.PhotoSize;
 import com.pengrad.telegrambot.model.Update;
-import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
-import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
-import com.pengrad.telegrambot.model.request.KeyboardButton;
-import com.pengrad.telegrambot.model.request.ReplyKeyboardMarkup;
-import com.pengrad.telegrambot.request.GetFile;
 import com.pengrad.telegrambot.request.SendMessage;
-import com.pengrad.telegrambot.response.GetFileResponse;
 import com.pengrad.telegrambot.response.SendResponse;
-import com.skyteam.animalshelterbot.exception.ClientNotFoundException;
 import com.skyteam.animalshelterbot.listener.constants.PetType;
 import com.skyteam.animalshelterbot.listener.constants.ReportStatus;
-import com.skyteam.animalshelterbot.model.Adopter;
 import com.skyteam.animalshelterbot.model.Client;
-import com.skyteam.animalshelterbot.model.QuestionsForVolunteer;
-import com.skyteam.animalshelterbot.model.Report.CatReport;
-import com.skyteam.animalshelterbot.model.Report.DogReport;
-import com.skyteam.animalshelterbot.model.Report.Report;
 import com.skyteam.animalshelterbot.model.Volunteer;
-import com.skyteam.animalshelterbot.model.images.CatImage;
-import com.skyteam.animalshelterbot.model.images.DogImage;
 import com.skyteam.animalshelterbot.repository.*;
-import com.skyteam.animalshelterbot.service.AdopterService;
-import com.skyteam.animalshelterbot.service.ClientService;
-import com.skyteam.animalshelterbot.service.PetService;
-import com.skyteam.animalshelterbot.service.VolunteerService;
+import com.skyteam.animalshelterbot.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.regex.Matcher;
@@ -75,13 +53,16 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private final CatImageRepository catImageRepository;
     private final DogImageRepository dogImageRepository;
     private final AdopterService adopterService;
+    private final MenuBuilderService menuBuilderService;
+    private final SaveEntityService saveEntityService;
 
     public TelegramBotUpdatesListener(ClientService clientService, PetService petService, VolunteerService volunteerService,
                                       QuestionsForVolunteerRepository questionsForVolunteerRepository,
                                       ClientRepository clientRepository, AdopterRepository adopterRepository,
                                       CatReportRepository catReportRepository, DogReportRepository dogReportRepository,
                                       PetRepository petRepository, CatImageRepository catImageRepository,
-                                      DogImageRepository dogImageRepository, AdopterService adopterService) {
+                                      DogImageRepository dogImageRepository, AdopterService adopterService,
+                                      MenuBuilderService menuBuilderService, SaveEntityService saveEntityService) {
         this.clientService = clientService;
         this.volunteerService = volunteerService;
         this.clientRepository = clientRepository;
@@ -91,6 +72,8 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         this.catImageRepository = catImageRepository;
         this.dogImageRepository = dogImageRepository;
         this.adopterService = adopterService;
+        this.menuBuilderService = menuBuilderService;
+        this.saveEntityService = saveEntityService;
     }
 
     /**
@@ -145,7 +128,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private void processMessage(Update update) {
 
         if (update.message().contact() != null) {
-            saveAdopter(update);
+            saveEntityService.saveAdopter(update);
             return;
         }
 
@@ -167,38 +150,25 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
         ReportStatus reportStatus = adopterService.getUpdateStatus(chatId);
         if (reportStatus == WAITING_FOR_PET_PICTURE) {
-            saveAdoptionReportPhoto(update);
+            saveEntityService.saveAdoptionReportPhoto(update);
             adopterService.setUpdateStatus(chatId, WAITING_FOR_PET_DIET);
             return;
         }
         if (reportStatus == WAITING_FOR_PET_DIET) {
-            saveAdoptionReportDiet(update);
+            saveEntityService.saveAdoptionReportDiet(update);
             adopterService.setUpdateStatus(chatId, WAITING_FOR_WELL_BEING);
             return;
         }
         if (reportStatus == WAITING_FOR_WELL_BEING) {
-            saveAdoptionReportWellBeing(update);
+            saveEntityService.saveAdoptionReportWellBeing(update);
             adopterService.setUpdateStatus(chatId, WAITING_FOR_BEHAVIOR_CHANGE);
             return;
         }
         if (reportStatus == WAITING_FOR_BEHAVIOR_CHANGE) {
-            saveAdoptionReportBehaviorChange(update);
+            saveEntityService.saveAdoptionReportBehaviorChange(update);
             adopterService.setUpdateStatus(chatId, DEFAULT);
             return;
         }
-
-//        if (matcherForAddPattern.matches()) {
-//            PetType type = PetType.valueOf(matcherForAddPattern.group(1));
-//            String nickName = matcherForAddPattern.group(5);
-//            Sex sex = Sex.valueOf(matcherForAddPattern.group(3));
-//            String breed = matcherForAddPattern.group(7);
-//            Integer age = Integer.parseInt(matcherForAddPattern.group(9));
-//            byte[] picture = matcherForAddPattern.group(11).getBytes();
-//            Pet pet = new Pet(type,nickName,breed,sex,age,picture);
-//            petService.createPet(pet);
-//            sendMessage(chatId,"Животное добавлено в БД");
-//        }
-
 
         switch (update.message().text()) {
             case "/start":
@@ -208,7 +178,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                 break;
             case BUTTON_CALL_VOLUNTEER:
                 // Позвать волонтера
-                callVolunteer(update);
+                saveEntityService.callVolunteer(update);
                 break;
             case BUTTON_CANCEL:
                 cancelShareContact(update);
@@ -261,7 +231,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     break;
                 //Отправка отчета
                 case BUTTON_SEND_REPORT_CALLBACK:
-                    saveAdoptionReport(chatId);
+                    saveEntityService.saveAdoptionReport(chatId);
                     break;
                 case BUTTON_SHARE_CONTACT_CALLBACK:
                     // Поделитесь своими контактными данными
@@ -323,93 +293,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         }
     }
 
-    /**
-     * Создает кнопки выбора приютов.
-     */
-    private InlineKeyboardMarkup createButtonsPetTypeSelect() {
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(messagesBundle.getString("BUTTON_CAT_SHELTER")).callbackData(BUTTON_CAT_SHELTER_CALLBACK));
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(messagesBundle.getString("BUTTON_DOG_SHELTER")).callbackData(BUTTON_DOG_SHELTER_CALLBACK));
-        return inlineKeyboardMarkup;
-    }
-
-    /**
-     * Создает кнопки основного меню при уже выбраном приюте
-     */
-    private InlineKeyboardMarkup createButtonsMenu() {
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(messagesBundle.getString("BUTTON_INFO_SHELTER")).callbackData(BUTTON_INFO_SHELTER_GENERAL_CALLBACK));
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(messagesBundle.getString("BUTTON_HOW_ADOPT_ANIMAL_FROM_SHELTER")).callbackData(BUTTON_HOW_ADOPT_ANIMAL_FROM_SHELTER_CALLBACK));
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(messagesBundle.getString("BUTTON_SUBMIT_PET_REPORT")).callbackData(BUTTON_SUBMIT_PET_REPORT_CALLBACK));
-
-        return inlineKeyboardMarkup;
-    }
-
-    /**
-     * Создает кнопки выбора информации о приюте.
-     */
-    private InlineKeyboardMarkup buttonsStartMenu() {
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(messagesBundle.getString("BUTTON_INFO_SHELTER")).callbackData(BUTTON_INFO_SHELTER_CALLBACK));
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(messagesBundle.getString("BUTTON_INFO_SECURITY")).callbackData(BUTTON_INFO_SECURITY_CALLBACK));
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(messagesBundle.getString("BUTTON_INFO_SAFETY_PRECAUTIONS")).callbackData(BUTTON_INFO_SAFETY_PRECAUTIONS_CALLBACK));
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(messagesBundle.getString("BUTTON_SHARE_CONTACT_DETAILS")).callbackData(BUTTON_SHARE_CONTACT_CALLBACK));
-
-        return inlineKeyboardMarkup;
-    }
-
-    /**
-     * Создает кнопки при выборе приюта
-     */
-    private InlineKeyboardMarkup buttonsInfoShelter() {
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(messagesBundle.getString("BUTTON_RULES_MEETING_ANIMAL")).callbackData(BUTTON_RULES_MEETING_ANIMAL_CALLBACK));
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(messagesBundle.getString("BUTTON_DOCS_FOR_ADOPTION")).callbackData(BUTTON_DOCS_FOR_ADOPTION_CALLBACK));
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(messagesBundle.getString("BUTTON_RECOMMENDATIONS_FOR_TRANSPORT")).callbackData(BUTTON_RECOMMENDATIONS_FOR_TRANSPORT_CALLBACK));
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(messagesBundle.getString("BUTTON_ARRANGEMENT_FOR_PET")).callbackData(BUTTON_ARRANGEMENT_FOR_PET_CALLBACK));
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(messagesBundle.getString("BUTTON_ARRANGEMENT_FOR_ADULT")).callbackData(BUTTON_ARRANGEMENT_FOR_ADULT_CALLBACK));
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(messagesBundle.getString("BUTTON_ADVICES_FOR_DISABLED_PET")).callbackData(BUTTON_ADVICES_FOR_DISABLED_PET_CALLBACK));
-        if (petType.equals(DOG)) {
-            inlineKeyboardMarkup.addRow(new InlineKeyboardButton(messagesBundle.getString("BUTTON_ADVICES_FROM_KINOLOG")).callbackData(BUTTON_ADVICES_FROM_KINOLOG_CALLBACK));
-            inlineKeyboardMarkup.addRow(new InlineKeyboardButton(messagesBundle.getString("BUTTON_RECOMMENDED_KINOLOGS")).callbackData(BUTTON_RECOMMENDED_KINOLOGS_CALLBACK));
-        }
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(messagesBundle.getString("BUTTON_REASONS_FOR_REFUSAL")).callbackData(BUTTON_REASONS_FOR_REFUSAL_CALLBACK));
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(messagesBundle.getString("BUTTON_SHARE_CONTACT_DETAILS")).callbackData(BUTTON_SHARE_CONTACT_CALLBACK));
-        return inlineKeyboardMarkup;
-    }
-
-    /**
-     * Кнопки для отправки данных.
-     */
-    private InlineKeyboardMarkup createButtonsReport() {
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(messagesBundle.getString("BUTTON_REPORT_TEMPLATE")).callbackData(BUTTON_REPORT_TEMPLATE_CALLBACK));
-        inlineKeyboardMarkup.addRow(new InlineKeyboardButton(messagesBundle.getString("BUTTON_SEND_REPORT")).callbackData(BUTTON_SEND_REPORT_CALLBACK));
-        return inlineKeyboardMarkup;
-    }
-
-    /**
-     * Создает кнопки отправки данных пользователя.
-     */
-    private ReplyKeyboardMarkup requestContactKeyboardButton() {
-        KeyboardButton keyboardButtonShare = new KeyboardButton(messagesBundle.getString("BUTTON_SHARE_CONTACT"));
-        KeyboardButton keyboardButtonCancel = new KeyboardButton(messagesBundle.getString("BUTTON_CANCEL"));
-        keyboardButtonShare.requestContact(true);
-        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(keyboardButtonShare, keyboardButtonCancel);
-        replyKeyboardMarkup.resizeKeyboard(true);
-        return replyKeyboardMarkup;
-    }
-
-    /**
-     * Создает главное меню.
-     */
-    private ReplyKeyboardMarkup mainMenuKeyboardButtons() {
-        KeyboardButton keyboardButtonMain = new KeyboardButton(messagesBundle.getString("BUTTON_MAIN_MENU"));
-        KeyboardButton keyboardButtonCall = new KeyboardButton(messagesBundle.getString("BUTTON_CALL_VOLUNTEER"));
-        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(keyboardButtonMain, keyboardButtonCall);
-        replyKeyboardMarkup.resizeKeyboard(true);
-        return replyKeyboardMarkup;
-    }
 
 
     /**
@@ -461,7 +344,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
         SendMessage message = new SendMessage(chatId, messageText);
 
-        message.replyMarkup(buttonsStartMenu());
+        message.replyMarkup(menuBuilderService.buttonsStartMenu());
         sendMessage(message);
     }
 
@@ -482,7 +365,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                 break;
         }
         SendMessage message = new SendMessage(chatId, messageText);
-        message.replyMarkup(buttonsInfoShelter());
+        message.replyMarkup(menuBuilderService.buttonsInfoShelter());
 
         sendMessage(message);
     }
@@ -505,7 +388,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         }
         SendMessage message = new SendMessage(chatId, messageText);
 
-        message.replyMarkup(createButtonsReport());
+        message.replyMarkup(menuBuilderService.createButtonsReport());
         sendMessage(message);
     }
 
@@ -528,7 +411,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         }
 
         SendMessage message = new SendMessage(chatId, messageText);
-        message.replyMarkup(createButtonsReport());
+        message.replyMarkup(menuBuilderService.createButtonsReport());
         sendMessage(message);
     }
 
@@ -537,7 +420,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      */
     private void processCatShelterClick(long chatId) {
         petType = CAT;
-        saveClient(chatId, petType);
+        saveEntityService.saveClient(chatId, petType);
         sendStartMessage(chatId, messagesBundle.getString("CAT_SHELTER_WELCOME"));
     }
 
@@ -546,7 +429,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      */
     private void processDogShelterClick(long chatId) {
         petType = DOG;
-        saveClient(chatId, petType);
+        saveEntityService.saveClient(chatId, petType);
         sendStartMessage(chatId, messagesBundle.getString("DOG_SHELTER_WELCOME"));
     }
 
@@ -556,260 +439,9 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private void cancelShareContact(Update update) {
         long chatId = update.message().chat().id();
         SendMessage message = new SendMessage(chatId, messagesBundle.getString("BUTTON_CANCEL_SHARE_CONTACT"));
-        sendMessage(message.replyMarkup(mainMenuKeyboardButtons()));
+        sendMessage(message.replyMarkup(menuBuilderService.mainMenuKeyboardButtons()));
     }
 
-    /**
-     * Метод сохранения клиента (гость) в БД таблицу client
-     */
-    private void saveClient(long chatId, PetType lastPetType) {
-        Client client = clientRepository.findByChatId(chatId);
-        if (client == null) {
-            client = new Client(chatId, lastPetType);
-        } else {
-            client.setLastPetType(lastPetType);
-        }
-        clientRepository.save(client);
-    }
-
-    /**
-     * Метод сохранения усыновителя
-     */
-    private void saveAdopter(Update update) {
-        if (update.message().contact() != null) {
-            String firstName = update.message().contact().firstName();
-            String lastName = update.message().contact().lastName();
-            String username = update.message().chat().username();
-            String phone = update.message().contact().phoneNumber();
-            long chatId = update.message().chat().id();
-
-            Adopter adopter = adopterRepository.findByChatId(chatId);
-            if (adopter == null) {
-                Client client = clientRepository.findByChatId(chatId);
-                if (client == null) {
-                    throw new ClientNotFoundException(chatId);
-                }
-                adopter = new Adopter(firstName, lastName, username, phone, chatId, client.getLastPetType());
-                adopterRepository.save(adopter);
-                SendMessage message = new SendMessage(chatId, messagesBundle.getString("SAVE_ADOPTER_SUCCESS"));
-                sendMessage(message.replyMarkup(mainMenuKeyboardButtons()));
-            } else {
-                SendMessage message = new SendMessage(chatId, "ADOPTER_ALREADY_EXISTS");
-                sendMessage(message.replyMarkup(mainMenuKeyboardButtons()));
-            }
-        }
-    }
-
-    /**
-     * Метод вызова волонтера
-     */
-    private void callVolunteer(Update update) {
-        String userId = ""; // client chat_id or username
-        long chatId = 0; // volunteer's chat_id
-        userId += update.message().from().id();
-        logger.info("UserId = {}", userId);
-        Volunteer volunteer = volunteerService.findFreeVolunteer();
-        if (volunteer == null) {
-            chatId = Long.parseLong(userId);
-            SendMessage message = new SendMessage(chatId, messagesBundle.getString("NO_VOLUNTEERS_TEXT"));
-            sendMessage(message);
-        } else {
-            chatId = volunteer.getChatId();
-            if (update.message().from().username() != null) {
-                userId = "@" + update.message().from().username();
-                SendMessage message = new SendMessage(chatId, String.format(messagesBundle.getString("CONTACT_TELEGRAM_USER"), userId));
-                sendMessage(message);
-            } else {
-                SendMessage message = new SendMessage(chatId, String.format(messagesBundle.getString("CONTACT_TELEGRAM_ID"), userId));
-                sendMessage(message);
-            }
-        }
-    }
-
-    /**
-     * Метод сохранения отчета
-     */
-    private void saveAdoptionReport(long chatId) {
-        Adopter adopterId = adopterRepository.findByChatId(chatId);
-        LocalDate date = LocalDate.now();
-
-        if (adopterId.getPetType().equals(DOG)) {
-            DogReport adoptionReport = dogReportRepository.findAdoptionReportByAdopterId(adopterId);
-
-            if (adoptionReport == null) {
-                adoptionReport = new DogReport(date, null, null, null);
-                dogReportRepository.save((DogReport) adoptionReport);
-                SendMessage requestPhotoMessage = new SendMessage(chatId, messagesBundle.getString("PHOTO_WAITING_MESSAGE"));
-                requestPhotoMessage.replyMarkup(createButtonsReport());
-                sendMessage(requestPhotoMessage);
-            } else {
-                SendMessage message = new SendMessage(chatId, messagesBundle.getString("ADOPTION_REPORT_ALREADY_EXIST"));
-                sendMessage(message);
-            }
-        }
-        if (adopterId.getPetType().equals(CAT)) {
-            CatReport adoptionReport = catReportRepository.findAdoptionReportByAdopterId(adopterId);
-
-            if (adoptionReport == null) {
-                adoptionReport = new CatReport(date, null, null, null);
-                catReportRepository.save((CatReport) adoptionReport);
-                SendMessage requestPhotoMessage = new SendMessage(chatId, messagesBundle.getString("PHOTO_WAITING_MESSAGE"));
-                requestPhotoMessage.replyMarkup(createButtonsReport());
-                sendMessage(requestPhotoMessage);
-            } else {
-                SendMessage message = new SendMessage(chatId, messagesBundle.getString("ADOPTION_REPORT_ALREADY_EXIST"));
-                sendMessage(message);
-            }
-        }
-    }
-
-    /**
-     * Метод фото в отчет
-     */
-    private void saveAdoptionReportPhoto(Update update) {
-        long chatId = update.message().chat().id();
-        Adopter adopter = adopterRepository.findByChatId(chatId);
-//        Report adoptionReport;
-        if (adopter.getPetType().equals(CAT)) {
-           CatReport adoptionReport = catReportRepository.findAdoptionReportByAdopterId(adopter);
-
-            if (update.message().photo() != null) {
-                byte[] image = getPhoto(update);
-                CatImage images = new CatImage(image);
-                catImageRepository.save(images);
-                catReportRepository.save((CatReport) adoptionReport);
-                SendMessage savePhotoMessage = new SendMessage(chatId, messagesBundle.getString("PHOTO_SAVED_MESSAGE"));
-                sendMessage(savePhotoMessage);
-            }
-        } else if (adopter.getPetType().equals(DOG)) {
-            DogReport adoptionReport = dogReportRepository.findAdoptionReportByAdopterId(adopter);
-
-            if (update.message().photo() != null) {
-                byte[] image = getPhoto(update);
-                DogImage images = new DogImage(image);
-                dogImageRepository.save(images);
-                dogReportRepository.save((DogReport) adoptionReport);
-                SendMessage savePhotoMessage = new SendMessage(chatId, messagesBundle.getString("PHOTO_SAVED_MESSAGE"));
-                sendMessage(savePhotoMessage);
-            }
-        }
-    }
-
-    /**
-     * Метод для получения фото
-     */
-    public byte[] getPhoto(Update update) {
-        if (update.message().photo() != null) {
-            PhotoSize[] photoSizes = update.message().photo();
-            for (PhotoSize photoSize : photoSizes) {
-                GetFile getFile = new GetFile(photoSize.fileId());
-                GetFileResponse getFileResponse = telegramBot.execute(getFile);
-                if (getFileResponse.isOk()) {
-                    File file = getFileResponse.file();
-                    String extension = StringUtils.getFilenameExtension(file.filePath());
-                    try {
-                        byte[] image = telegramBot.getFileContent(file);
-                        return image;
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Метод для получения отчета о диете
-     */
-    private void saveAdoptionReportDiet(Update update) {
-        long chatId = update.message().chat().id();
-        Adopter adopter = adopterRepository.findByChatId(chatId);
-
-//        Report adoptionReport;
-        if (adopter.getPetType().equals(CAT)) {
-            CatReport adoptionReport = catReportRepository.findAdoptionReportByAdopterId(adopter);
-            String diet = adoptionReport.getDiet();
-            if (diet == null) {
-                String newDiet = update.message().text();
-                adoptionReport.setDiet(newDiet);
-                catReportRepository.save((CatReport) adoptionReport);
-                SendMessage saveDietMessage = new SendMessage(chatId, messagesBundle.getString("DIET_SAVED"));
-                sendMessage(saveDietMessage);
-            }
-        } else if (adopter.getPetType().equals(DOG)) {
-           DogReport adoptionReport = dogReportRepository.findAdoptionReportByAdopterId(adopter);
-            String diet = adoptionReport.getDiet();
-            if (diet == null) {
-                String newDiet = update.message().text();
-                adoptionReport.setDiet(newDiet);
-                dogReportRepository.save((DogReport) adoptionReport);
-                SendMessage saveDietMessage = new SendMessage(chatId, messagesBundle.getString("DIET_SAVED"));
-                sendMessage(saveDietMessage);
-            }
-        }
-    }
-
-    /**
-     * Метод для сохранения отчета об изменениях в поведении
-     */
-    private void saveAdoptionReportBehaviorChange(Update update) {
-        long chatId = update.message().chat().id();
-        Adopter adopter = adopterRepository.findByChatId(chatId);
-//        Report adoptionReport;
-        if (adopter.getPetType().equals(CAT)) {
-           CatReport adoptionReport = catReportRepository.findAdoptionReportByAdopterId(adopter);
-            String behaviorChane = adoptionReport.getBehavioralChanges();
-            if (behaviorChane == null) {
-                String newBehaviorChane = update.message().text();
-                adoptionReport.setBehavioralChanges(newBehaviorChane);
-                catReportRepository.save((CatReport) adoptionReport);
-                SendMessage saveBehaviorChangeMessage = new SendMessage(chatId, messagesBundle.getString("BEHAVIOR_CHANGE_SAVED"));
-                sendMessage(saveBehaviorChangeMessage);
-            }
-        } else if(adopter.getPetType().equals(DOG)) {
-            DogReport adoptionReport = dogReportRepository.findAdoptionReportByAdopterId(adopter);
-            String behaviorChane = adoptionReport.getBehavioralChanges();
-            if (behaviorChane == null) {
-                String newBehaviorChane = update.message().text();
-                adoptionReport.setBehavioralChanges(newBehaviorChane);
-                dogReportRepository.save((DogReport) adoptionReport);
-                SendMessage saveBehaviorChangeMessage = new SendMessage(chatId, messagesBundle.getString("BEHAVIOR_CHANGE_SAVED"));
-                sendMessage(saveBehaviorChangeMessage);
-            }
-        }
-    }
-
-    /**
-     * Метод для получения отчета о здоровье питомца
-     */
-    private void saveAdoptionReportWellBeing(Update update) {
-        long chatId = update.message().chat().id();
-        Adopter adopter = adopterRepository.findByChatId(chatId);
-
-        if (adopter.getPetType().equals(CAT)) {
-            CatReport adoptionReport = catReportRepository.findAdoptionReportByAdopterId(adopter);
-            String wellBeing = adoptionReport.getCommonDescriptionOfStatus();
-            if (wellBeing == null) {
-                String newWellBeing = update.message().text();
-                adoptionReport.setCommonDescriptionOfStatus(newWellBeing);
-                catReportRepository.save((CatReport) adoptionReport);
-                SendMessage saveWellBeingMessage = new SendMessage(chatId, messagesBundle.getString("WELL_BEING_SAVED"));
-                sendMessage(saveWellBeingMessage);
-            }
-        } else if (adopter.getPetType().equals(DOG)) {
-            DogReport adoptionReport = dogReportRepository.findAdoptionReportByAdopterId(adopter);
-            String wellBeing = adoptionReport.getCommonDescriptionOfStatus();
-            if (wellBeing == null) {
-                String newWellBeing = update.message().text();
-                adoptionReport.setCommonDescriptionOfStatus(newWellBeing);
-                dogReportRepository.save((DogReport) adoptionReport);
-                SendMessage saveWellBeingMessage = new SendMessage(chatId, messagesBundle.getString("WELL_BEING_SAVED"));
-                sendMessage(saveWellBeingMessage);
-
-            }
-        }
-    }
 
     /**
      * Метод выбора типа приюта
@@ -817,7 +449,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private void sendShelterTypeSelectMessage(long chatId) {
         SendMessage message = new SendMessage(chatId, messagesBundle.getString("SHELTER_TYPE_SELECT"));
 
-        message.replyMarkup(createButtonsPetTypeSelect());
+        message.replyMarkup(menuBuilderService.createButtonsPetTypeSelect());
         sendMessage(message);
     }
 
@@ -827,7 +459,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private void sendStartMessage(long chatId, String messageText) {
         SendMessage message = new SendMessage(chatId, messageText);
 
-        message.replyMarkup(createButtonsMenu());
+        message.replyMarkup(menuBuilderService.createButtonsMenu());
         sendMessage(message);
     }
 

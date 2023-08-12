@@ -11,7 +11,7 @@ import java.util.List;
 public interface DogReportRepository extends JpaRepository<DogReport, Long> {
     List<DogReport> findDogReportsByDogClientId(Long id);
 
-    DogReport findAdoptionReportByAdopterId(Adopter adopter);
+    DogReport findDogReportByAdopterId(Adopter adopter);
 
     List<DogReport> findDogReportsByPetId(Long id);
 
