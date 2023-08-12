@@ -12,7 +12,7 @@ import java.util.List;
 public interface CatReportRepository  extends JpaRepository<CatReport, Long> {
     List<CatReport> findCatReportsByCatClientId(Long id);
 
-    CatReport findAdoptionReportByAdopterId(Adopter adopter);
+    CatReport findCatReportByAdopterId(Adopter adopter);
     List<CatReport> findCatReportsByPetId(Long id);
 
     void deleteCatReportsByPetId(Long id);
