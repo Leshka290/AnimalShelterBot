@@ -39,7 +39,7 @@ public class ReportController<N extends Report, T extends Pet> {
 
     @GetMapping
     @Operation(
-            summary = "Найти отчёт по Id",
+            summary = "Найти отчёт по питомцу",
             responses = {
                     @ApiResponse(
                             responseCode = "200",
@@ -47,7 +47,7 @@ public class ReportController<N extends Report, T extends Pet> {
                             content = {
                                     @Content(
                                             mediaType = MediaType.APPLICATION_JSON_VALUE,
-                                            schema = @Schema(implementation = DogReport.class)
+                                            schema = @Schema(implementation = Report.class)
                                     )
                             }
                     ),
@@ -66,7 +66,26 @@ public class ReportController<N extends Report, T extends Pet> {
     }
 
     @DeleteMapping
-    public ResponseEntity<HttpStatus> deleteReportsByPet(T pet) {
+    @Operation(
+            summary = "Удалить отчет по питомцу",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "отчет удаленн",
+                            content = {
+                                    @Content(
+                                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                            schema = @Schema(implementation = Report.class)
+                                    )
+                            }
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Нет отчета"
+                    )
+            }
+    )
+    public ResponseEntity<HttpStatus> deleteReportsByPet(@RequestBody T pet) {
         if (pet.getPetType().equals(PetType.CAT)) {
             return ResponseEntity.ok(catReportService.deleteReportsByPet(pet.getId()));
         } else if (pet.getPetType().equals(PetType.DOG)) {

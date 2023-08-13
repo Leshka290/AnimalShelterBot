@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -46,8 +45,6 @@ public class SaveEntityService {
     @Autowired
     private final TelegramBot telegramBot = new TelegramBot("BOT_TOKEN");
 
-    private PetType petType;
-    private final ClientService clientService;
     private final VolunteerService volunteerService;
     private final ClientRepository clientRepository;
     private final AdopterRepository adopterRepository;
@@ -55,7 +52,6 @@ public class SaveEntityService {
     private final DogReportRepository dogReportRepository;
     private final CatImageRepository catImageRepository;
     private final DogImageRepository dogImageRepository;
-    private final AdopterService adopterService;
 
     private final MenuBuilderService menuBuilderService;
 
@@ -64,12 +60,11 @@ public class SaveEntityService {
      */
     private final ResourceBundle messagesBundle = ResourceBundle.getBundle("bot_messages");
 
-    public SaveEntityService(ClientService clientService, VolunteerService volunteerService,
+    public SaveEntityService(VolunteerService volunteerService,
                              ClientRepository clientRepository, AdopterRepository adopterRepository,
                              CatReportRepository catReportRepository, DogReportRepository dogReportRepository,
                              CatImageRepository catImageRepository, DogImageRepository dogImageRepository,
-                             AdopterService adopterService, MenuBuilderService menuBuilderService) {
-        this.clientService = clientService;
+                              MenuBuilderService menuBuilderService) {
         this.volunteerService = volunteerService;
         this.clientRepository = clientRepository;
         this.adopterRepository = adopterRepository;
@@ -77,7 +72,6 @@ public class SaveEntityService {
         this.dogReportRepository = dogReportRepository;
         this.catImageRepository = catImageRepository;
         this.dogImageRepository = dogImageRepository;
-        this.adopterService = adopterService;
         this.menuBuilderService = menuBuilderService;
     }
 
@@ -141,7 +135,7 @@ public class SaveEntityService {
 
             if (adoptionReport == null) {
                 adoptionReport = new DogReport(date, null, null, null);
-                dogReportRepository.save((DogReport) adoptionReport);
+                dogReportRepository.save(adoptionReport);
                 SendMessage requestPhotoMessage = new SendMessage(chatId, messagesBundle.getString("PHOTO_WAITING_MESSAGE"));
                 requestPhotoMessage.replyMarkup(menuBuilderService.createButtonsReport());
                 sendMessage(requestPhotoMessage);
@@ -155,7 +149,7 @@ public class SaveEntityService {
 
             if (adoptionReport == null) {
                 adoptionReport = new CatReport(date, null, null, null);
-                catReportRepository.save((CatReport) adoptionReport);
+                catReportRepository.save(adoptionReport);
                 SendMessage requestPhotoMessage = new SendMessage(chatId, messagesBundle.getString("PHOTO_WAITING_MESSAGE"));
                 requestPhotoMessage.replyMarkup(menuBuilderService.createButtonsReport());
                 sendMessage(requestPhotoMessage);
@@ -180,7 +174,7 @@ public class SaveEntityService {
                 byte[] image = getPhoto(update);
                 CatImage images = new CatImage(image);
                 catImageRepository.save(images);
-                catReportRepository.save((CatReport) adoptionReport);
+                catReportRepository.save(adoptionReport);
                 SendMessage savePhotoMessage = new SendMessage(chatId, messagesBundle.getString("PHOTO_SAVED_MESSAGE"));
                 sendMessage(savePhotoMessage);
             }
@@ -191,7 +185,7 @@ public class SaveEntityService {
                 byte[] image = getPhoto(update);
                 DogImage images = new DogImage(image);
                 dogImageRepository.save(images);
-                dogReportRepository.save((DogReport) adoptionReport);
+                dogReportRepository.save(adoptionReport);
                 SendMessage savePhotoMessage = new SendMessage(chatId, messagesBundle.getString("PHOTO_SAVED_MESSAGE"));
                 sendMessage(savePhotoMessage);
             }
@@ -209,10 +203,8 @@ public class SaveEntityService {
                 GetFileResponse getFileResponse = telegramBot.execute(getFile);
                 if (getFileResponse.isOk()) {
                     File file = getFileResponse.file();
-                    String extension = StringUtils.getFilenameExtension(file.filePath());
                     try {
-                        byte[] image = telegramBot.getFileContent(file);
-                        return image;
+                        return telegramBot.getFileContent(file);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -236,7 +228,7 @@ public class SaveEntityService {
             if (diet == null) {
                 String newDiet = update.message().text();
                 adoptionReport.setDiet(newDiet);
-                catReportRepository.save((CatReport) adoptionReport);
+                catReportRepository.save(adoptionReport);
                 SendMessage saveDietMessage = new SendMessage(chatId, messagesBundle.getString("DIET_SAVED"));
                 sendMessage(saveDietMessage);
             }
@@ -246,7 +238,7 @@ public class SaveEntityService {
             if (diet == null) {
                 String newDiet = update.message().text();
                 adoptionReport.setDiet(newDiet);
-                dogReportRepository.save((DogReport) adoptionReport);
+                dogReportRepository.save(adoptionReport);
                 SendMessage saveDietMessage = new SendMessage(chatId, messagesBundle.getString("DIET_SAVED"));
                 sendMessage(saveDietMessage);
             }
@@ -266,7 +258,7 @@ public class SaveEntityService {
             if (behaviorChane == null) {
                 String newBehaviorChane = update.message().text();
                 adoptionReport.setBehavioralChanges(newBehaviorChane);
-                catReportRepository.save((CatReport) adoptionReport);
+                catReportRepository.save(adoptionReport);
                 SendMessage saveBehaviorChangeMessage = new SendMessage(chatId, messagesBundle.getString("BEHAVIOR_CHANGE_SAVED"));
                 sendMessage(saveBehaviorChangeMessage);
             }
@@ -276,7 +268,7 @@ public class SaveEntityService {
             if (behaviorChane == null) {
                 String newBehaviorChane = update.message().text();
                 adoptionReport.setBehavioralChanges(newBehaviorChane);
-                dogReportRepository.save((DogReport) adoptionReport);
+                dogReportRepository.save(adoptionReport);
                 SendMessage saveBehaviorChangeMessage = new SendMessage(chatId, messagesBundle.getString("BEHAVIOR_CHANGE_SAVED"));
                 sendMessage(saveBehaviorChangeMessage);
             }
@@ -296,7 +288,7 @@ public class SaveEntityService {
             if (wellBeing == null) {
                 String newWellBeing = update.message().text();
                 adoptionReport.setCommonDescriptionOfStatus(newWellBeing);
-                catReportRepository.save((CatReport) adoptionReport);
+                catReportRepository.save(adoptionReport);
                 SendMessage saveWellBeingMessage = new SendMessage(chatId, messagesBundle.getString("WELL_BEING_SAVED"));
                 sendMessage(saveWellBeingMessage);
             }
@@ -306,7 +298,7 @@ public class SaveEntityService {
             if (wellBeing == null) {
                 String newWellBeing = update.message().text();
                 adoptionReport.setCommonDescriptionOfStatus(newWellBeing);
-                dogReportRepository.save((DogReport) adoptionReport);
+                dogReportRepository.save(adoptionReport);
                 SendMessage saveWellBeingMessage = new SendMessage(chatId, messagesBundle.getString("WELL_BEING_SAVED"));
                 sendMessage(saveWellBeingMessage);
 
@@ -319,7 +311,7 @@ public class SaveEntityService {
      */
     public void callVolunteer(Update update) {
         String userId = ""; // client chat_id or username
-        long chatId = 0; // volunteer's chat_id
+        long chatId; // volunteer's chat_id
         userId += update.message().from().id();
         logger.info("UserId = {}", userId);
         Volunteer volunteer = volunteerService.findFreeVolunteer();

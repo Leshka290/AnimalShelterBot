@@ -17,7 +17,7 @@ public class TelegramBotConfiguration {
     private String token;
 
     @Value("${bot.owner}")
-    Long ownerId;
+    private Long ownerId;
 
     @Bean
     public TelegramBot telegramBot() {
@@ -27,5 +27,5 @@ public class TelegramBotConfiguration {
     }
 
     @Value("${bot.name}")
-    String botName;
+    private String botName;
 }
